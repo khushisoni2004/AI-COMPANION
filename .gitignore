@@ -1,0 +1,12 @@
+# Root Gitignore
+.DS_Store
+*.safetensors
+*.zip
+mental-health-backend/Aurora_Model_Merged/
+mental-health-backend/Aurora_Model-*/
+mental-health-backend/*.db
+mental-health-backend/*.db-journal
+mental-health-backend/__pycache__/
+mental-health-backend/.env
+FRONTEND/node_modules/
+FRONTEND/dist/

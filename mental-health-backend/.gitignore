@@ -1,0 +1,6 @@
+Aurora_Model_Merged/
+*.safetensors
+__pycache__/
+*.db
+*.db-journal
+.env
