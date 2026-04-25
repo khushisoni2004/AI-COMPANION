@@ -6,7 +6,12 @@ from datetime import datetime, date, timedelta
 from pathlib import Path
 import hashlib
 import secrets
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
@@ -74,17 +79,22 @@ app.add_middleware(
 )
 
 # =========================
-# SQLITE SETUP
+# POSTGRES SETUP
 # =========================
-conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
-conn.row_factory = sqlite3.Row
+DATABASE_URL = os.getenv("DATABASE_URL")
+conn = psycopg2.connect(DATABASE_URL)
+conn.autocommit = True
+
+def get_cursor():
+    return conn.cursor(cursor_factory=RealDictCursor)
+
+cur = get_cursor()
 
 with conn:
-    cur = conn.cursor()
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         name TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
@@ -97,7 +107,7 @@ with conn:
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS chats (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         session_id TEXT NOT NULL,
         role TEXT NOT NULL,
         text TEXT NOT NULL,
@@ -107,7 +117,7 @@ with conn:
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS events (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         session_id TEXT NOT NULL,
         event_type TEXT NOT NULL,
         section TEXT NOT NULL,
@@ -120,7 +130,7 @@ with conn:
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS mood_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         session_id TEXT NOT NULL,
         mood_value INTEGER NOT NULL,
         mood_label TEXT NOT NULL,
@@ -130,7 +140,7 @@ with conn:
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS books (
-        id INTEGER PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
         author TEXT,
         category TEXT,
@@ -142,7 +152,7 @@ with conn:
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS book_reads (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         session_id TEXT NOT NULL,
         book_id INTEGER NOT NULL,
         opened_at TEXT NOT NULL,
@@ -156,7 +166,7 @@ with conn:
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS favorite_books (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         session_id TEXT NOT NULL,
         book_id INTEGER NOT NULL,
         created_at TEXT NOT NULL,
@@ -324,7 +334,7 @@ def create_token(data: dict) -> str:
 def get_user_by_email(email: str):
     cur = conn.cursor()
     cur.execute(
-        "SELECT * FROM users WHERE email = ? AND is_active = 1",
+        "SELECT * FROM users WHERE email = %s AND is_active = 1",
         (email.strip().lower(),)
     )
     row = cur.fetchone()
@@ -352,17 +362,17 @@ def format_duration_label(seconds: int) -> str:
 
 def save_message(session_id: str, role: str, text: str):
     with conn:
-        conn.cursor().execute(
-            "INSERT INTO chats (session_id, role, text, time) VALUES (?, ?, ?, ?)",
+        cur.execute(
+            "INSERT INTO chats (session_id, role, text, time) VALUES (%s, %s, %s, %s)",
             (session_id, role, text, utc_now_iso())
         )
 
 
 def save_event(session_id: str, event_type: str, section: str, details: str = "", duration_seconds: int = 0, calm_score: Optional[int] = None):
     with conn:
-        conn.cursor().execute("""
+        cur.execute("""
             INSERT INTO events (session_id, event_type, section, details, duration_seconds, calm_score, time)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             session_id, event_type, section, details,
             int(duration_seconds or 0), calm_score, utc_now_iso()
@@ -371,15 +381,15 @@ def save_event(session_id: str, event_type: str, section: str, details: str = ""
 
 def save_mood(session_id: str, mood_value: int, mood_label: str):
     with conn:
-        conn.cursor().execute(
-            "INSERT INTO mood_logs (session_id, mood_value, mood_label, time) VALUES (?, ?, ?, ?)",
+        cur.execute(
+            "INSERT INTO mood_logs (session_id, mood_value, mood_label, time) VALUES (%s, %s, %s, %s)",
             (session_id, mood_value, mood_label, utc_now_iso())
         )
 
 
 def get_history_from_sqlite(session_id: str) -> List[Tuple[str, str]]:
     cur = conn.cursor()
-    cur.execute("SELECT role, text FROM chats WHERE session_id = ? ORDER BY id ASC", (session_id,))
+    cur.execute("SELECT role, text FROM chats WHERE session_id = %s ORDER BY id ASC", (session_id,))
     rows = cur.fetchall()
 
     history = []
@@ -397,7 +407,7 @@ def get_history_from_sqlite(session_id: str) -> List[Tuple[str, str]]:
 
 def book_exists(book_id: int) -> bool:
     cur = conn.cursor()
-    cur.execute("SELECT id FROM books WHERE id = ?", (book_id,))
+    cur.execute("SELECT id FROM books WHERE id = %s", (book_id,))
     return cur.fetchone() is not None
 
 
@@ -493,9 +503,9 @@ def register(req: RegisterRequest):
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO users (name, email, password_hash, age, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s) RETURNING id
         """, (name, email, password_hash, req.age, utc_now_iso()))
-        user_id = cur.lastrowid
+        user_id = cur.fetchone()["id"]
 
     token = create_token({"sub": str(user_id), "email": email, "name": name})
 
@@ -516,8 +526,8 @@ def login(req: LoginRequest):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     with conn:
-        conn.cursor().execute(
-            "UPDATE users SET last_login = ? WHERE email = ?",
+        cur.execute(
+            "UPDATE users SET last_login = %s WHERE email = %s",
             (utc_now_iso(), email)
         )
 
@@ -591,7 +601,7 @@ def chat(req: ChatRequest):
 @app.get("/session/{session_id}/history")
 def get_history(session_id: str):
     cur = conn.cursor()
-    cur.execute("SELECT role, text, time FROM chats WHERE session_id = ? ORDER BY id ASC", (session_id,))
+    cur.execute("SELECT role, text, time FROM chats WHERE session_id = %s ORDER BY id ASC", (session_id,))
     return {"session_id": session_id, "messages": [dict(row) for row in cur.fetchall()]}
 
 
@@ -599,11 +609,11 @@ def get_history(session_id: str):
 def clear_session(session_id: str):
     with conn:
         cur = conn.cursor()
-        cur.execute("DELETE FROM chats WHERE session_id = ?", (session_id,))
-        cur.execute("DELETE FROM events WHERE session_id = ?", (session_id,))
-        cur.execute("DELETE FROM mood_logs WHERE session_id = ?", (session_id,))
-        cur.execute("DELETE FROM favorite_books WHERE session_id = ?", (session_id,))
-        cur.execute("DELETE FROM book_reads WHERE session_id = ?", (session_id,))
+        cur.execute("DELETE FROM chats WHERE session_id = %s", (session_id,))
+        cur.execute("DELETE FROM events WHERE session_id = %s", (session_id,))
+        cur.execute("DELETE FROM mood_logs WHERE session_id = %s", (session_id,))
+        cur.execute("DELETE FROM favorite_books WHERE session_id = %s", (session_id,))
+        cur.execute("DELETE FROM book_reads WHERE session_id = %s", (session_id,))
     return {"message": f"Session {session_id} cleared"}
 
 # =========================
@@ -639,19 +649,19 @@ def dashboard_data():
 
     cur.execute("""
         SELECT COALESCE(SUM(duration_seconds), 0) AS total
-        FROM events WHERE section = 'meditation' AND date(time) >= date(?)
+        FROM events WHERE section = 'meditation' AND CAST(time AS DATE) >= date(%s)
     """, (month_ago.isoformat(),))
     row1 = cur.fetchone()
     minutes_meditated = round((row1["total"] or 0) / 60) if row1 else 0
 
     cur.execute("""
         SELECT COALESCE(AVG(mood_value), 0) AS avg_mood
-        FROM mood_logs WHERE date(time) >= date(?)
+        FROM mood_logs WHERE CAST(time AS DATE) >= date(%s)
     """, (week_ago.isoformat(),))
     row2 = cur.fetchone()
     avg_mood = row2["avg_mood"] if row2 and row2["avg_mood"] is not None else 0
 
-    cur.execute("SELECT DISTINCT date(time) AS d FROM mood_logs ORDER BY d DESC")
+    cur.execute("SELECT DISTINCT CAST(time AS DATE) AS d FROM mood_logs ORDER BY d DESC")
     mood_date_set = set(row["d"] for row in cur.fetchall())
 
     streak = 0
@@ -661,9 +671,9 @@ def dashboard_data():
         check_day -= timedelta(days=1)
 
     cur.execute("""
-        SELECT date(time) AS d, ROUND(AVG(mood_value), 0) AS avg_mood
-        FROM mood_logs WHERE date(time) >= date(?)
-        GROUP BY date(time)
+        SELECT CAST(time AS DATE) AS d, ROUND(AVG(mood_value), 0) AS avg_mood
+        FROM mood_logs WHERE CAST(time AS DATE) >= date(%s)
+        GROUP BY CAST(time AS DATE)
         ORDER BY d ASC
     """, (week_ago.isoformat(),))
     mood_map = {row["d"]: int(row["avg_mood"]) for row in cur.fetchall() if row["avg_mood"] is not None}
@@ -711,7 +721,7 @@ def save_books_bulk(books: List[BookCreate]):
         for book in books:
             cur.execute("""
                 INSERT OR REPLACE INTO books (id, title, author, category, description, image, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, COALESCE((SELECT created_at FROM books WHERE id = ?), ?))
+                VALUES (%s, %s, %s, %s, %s, %s, COALESCE((SELECT created_at FROM books WHERE id = %s), %s))
             """, (
                 book.id, book.title, book.author or "", book.category or "",
                 book.description or "", book.image or "", book.id, utc_now_iso()
@@ -733,9 +743,9 @@ def open_book(req: BookOpenRequest):
         raise HTTPException(status_code=404, detail="Book not found")
 
     with conn:
-        conn.cursor().execute("""
+        cur.execute("""
             INSERT INTO book_reads (session_id, book_id, opened_at, closed_at, duration_seconds, pages_read, completed)
-            VALUES (?, ?, ?, NULL, 0, 0, 0)
+            VALUES (%s, %s, %s, NULL, 0, 0, 0)
         """, (sid, req.book_id, utc_now_iso()))
 
     save_event(sid, "book_open", "growth", details=f"book_id:{req.book_id}")
@@ -749,7 +759,7 @@ def close_book(req: BookCloseRequest):
         cur = conn.cursor()
         cur.execute("""
             SELECT id FROM book_reads
-            WHERE session_id = ? AND book_id = ?
+            WHERE session_id = %s AND book_id = %s
             ORDER BY id DESC LIMIT 1
         """, (sid, req.book_id))
         row = cur.fetchone()
@@ -759,8 +769,8 @@ def close_book(req: BookCloseRequest):
 
         cur.execute("""
             UPDATE book_reads
-            SET closed_at = ?, duration_seconds = ?, pages_read = ?, completed = ?
-            WHERE id = ?
+            SET closed_at = %s, duration_seconds = %s, pages_read = %s, completed = %s
+            WHERE id = %s
         """, (
             utc_now_iso(),
             int(req.duration_seconds or 0),
@@ -781,17 +791,17 @@ def toggle_favorite(req: FavoriteRequest):
         raise HTTPException(status_code=404, detail="Book not found")
 
     cur = conn.cursor()
-    cur.execute("SELECT id FROM favorite_books WHERE session_id = ? AND book_id = ?", (sid, req.book_id))
+    cur.execute("SELECT id FROM favorite_books WHERE session_id = %s AND book_id = %s", (sid, req.book_id))
     existing = cur.fetchone()
 
     with conn:
         cur = conn.cursor()
         if existing:
-            cur.execute("DELETE FROM favorite_books WHERE session_id = ? AND book_id = ?", (sid, req.book_id))
+            cur.execute("DELETE FROM favorite_books WHERE session_id = %s AND book_id = %s", (sid, req.book_id))
             return {"status": "ok", "favorite": False}
 
         cur.execute(
-            "INSERT INTO favorite_books (session_id, book_id, created_at) VALUES (?, ?, ?)",
+            "INSERT INTO favorite_books (session_id, book_id, created_at) VALUES (%s, %s, %s)",
             (sid, req.book_id, utc_now_iso())
         )
         return {"status": "ok", "favorite": True}
@@ -804,7 +814,7 @@ def get_favorites(session_id: str):
         SELECT b.id, b.title, b.author, b.category, b.description, b.image
         FROM favorite_books f
         JOIN books b ON f.book_id = b.id
-        WHERE f.session_id = ?
+        WHERE f.session_id = %s
         ORDER BY f.id DESC
     """, (session_id,))
     return [dict(row) for row in cur.fetchall()]
@@ -817,7 +827,7 @@ def get_book_history(session_id: str):
         SELECT br.*, b.title, b.author, b.category
         FROM book_reads br
         JOIN books b ON br.book_id = b.id
-        WHERE br.session_id = ?
+        WHERE br.session_id = %s
         ORDER BY br.id DESC
         LIMIT 100
     """, (session_id,))
