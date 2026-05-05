@@ -10,3 +10,10 @@ mental-health-backend/__pycache__/
 mental-health-backend/.env
 FRONTEND/node_modules/
 FRONTEND/dist/
+node_modules/
+.env
+*.db
+__pycache__/
+venv/
+.DS_Store
+Aurora_Model_Merged/
