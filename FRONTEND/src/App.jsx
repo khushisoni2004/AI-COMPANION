@@ -15,43 +15,7 @@ export default function App() {
   );
 
   const [activePage, setActivePage] = useState("dashboard");
-  const [deferredPrompt, setDeferredPrompt] = useState(window.deferredPrompt || null);
 
-  useEffect(() => {
-    // If it already fired before React mounted
-    if (window.deferredPrompt) {
-      setDeferredPrompt(window.deferredPrompt);
-    }
-
-    const handleBeforeInstallPrompt = (e) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later.
-      window.deferredPrompt = e;
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      alert("Automatic install is blocked by your browser.\n\nTo install manually:\n1. Look for the 'Install' or '+' icon in your URL address bar.\n2. Or open your browser menu (⋮) and click 'Install MindAura'.");
-      return;
-    }
-    // Show the install prompt
-    deferredPrompt.prompt();
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setDeferredPrompt(null);
-      window.deferredPrompt = null;
-    }
-  };
 
   const handleAuthSuccess = () => {
     setIsLoggedIn(true);
@@ -145,22 +109,6 @@ export default function App() {
           </button>
         ))}
 
-          <button
-            onClick={handleInstallClick}
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              marginTop: 20,
-              borderRadius: 10,
-              border: "1px solid rgba(0, 212, 170, 0.4)",
-              background: "rgba(0, 212, 170, 0.1)",
-              color: "#00d4aa",
-              cursor: "pointer",
-              fontWeight: "600",
-            }}
-          >
-            Install App
-          </button>
 
         <button
           onClick={handleLogout}
