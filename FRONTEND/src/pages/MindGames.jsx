@@ -733,57 +733,202 @@ const TRIVIA = [
   { q: "Who painted the Mona Lisa?", opts: ["Michelangelo", "Raphael", "Botticelli", "Leonardo da Vinci"], ans: 3 },
   { q: "What is the square root of 144?", opts: ["10", "11", "12", "13"], ans: 2 },
   { q: "Which is the largest ocean on Earth?", opts: ["Atlantic", "Indian", "Arctic", "Pacific"], ans: 3 },
-  { q: "How many letters are in the alphabet?", opts: ["24", "25", "26", "27"], ans: 2 },
+  { q: "How many letters are in the English alphabet?", opts: ["24", "25", "26", "27"], ans: 2 },
   { q: "What gas do plants absorb from the air?", opts: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], ans: 2 },
+
+  { q: "Which organ pumps blood in the human body?", opts: ["Brain", "Heart", "Lungs", "Kidney"], ans: 1 },
+  { q: "Which planet is known as the Red Planet?", opts: ["Earth", "Mars", "Venus", "Saturn"], ans: 1 },
+  { q: "What is H2O commonly known as?", opts: ["Salt", "Water", "Oxygen", "Hydrogen"], ans: 1 },
+  { q: "How many days are there in a leap year?", opts: ["364", "365", "366", "367"], ans: 2 },
+  { q: "Which animal is known as the King of the Jungle?", opts: ["Tiger", "Lion", "Elephant", "Bear"], ans: 1 },
+  { q: "Which sense organ is used for hearing?", opts: ["Eye", "Ear", "Nose", "Tongue"], ans: 1 },
+  { q: "What is the freezing point of water?", opts: ["0°C", "10°C", "50°C", "100°C"], ans: 0 },
+  { q: "Which is the smallest prime number?", opts: ["0", "1", "2", "3"], ans: 2 },
+  { q: "Which language is used for styling web pages?", opts: ["HTML", "CSS", "Python", "SQL"], ans: 1 },
+  { q: "Which tag is used for the largest heading in HTML?", opts: ["h1", "h6", "p", "div"], ans: 0 },
+
+  { q: "Which country is known as the Land of the Rising Sun?", opts: ["India", "Japan", "China", "Thailand"], ans: 1 },
+  { q: "Which is the national animal of India?", opts: ["Lion", "Tiger", "Elephant", "Peacock"], ans: 1 },
+  { q: "Which is the national bird of India?", opts: ["Sparrow", "Eagle", "Peacock", "Parrot"], ans: 2 },
+  { q: "Which city is known as the Pink City of India?", opts: ["Jaipur", "Jodhpur", "Udaipur", "Bhopal"], ans: 0 },
+  { q: "Which river is considered the longest river in the world?", opts: ["Amazon", "Nile", "Ganga", "Yangtze"], ans: 1 },
+  { q: "How many continents are there on Earth?", opts: ["5", "6", "7", "8"], ans: 2 },
+  { q: "Which is the largest desert in the world?", opts: ["Sahara", "Gobi", "Antarctic Desert", "Thar"], ans: 2 },
+  { q: "Which is the fastest land animal?", opts: ["Lion", "Cheetah", "Horse", "Leopard"], ans: 1 },
+  { q: "Which part of the plant makes food?", opts: ["Root", "Stem", "Leaf", "Flower"], ans: 2 },
+  { q: "Which vitamin is produced when sunlight falls on skin?", opts: ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"], ans: 3 },
+
+  { q: "What is the capital of India?", opts: ["Mumbai", "New Delhi", "Kolkata", "Chennai"], ans: 1 },
+  { q: "What is the capital of Madhya Pradesh?", opts: ["Indore", "Bhopal", "Gwalior", "Jabalpur"], ans: 1 },
+  { q: "Which is the largest planet in our solar system?", opts: ["Earth", "Mars", "Jupiter", "Venus"], ans: 2 },
+  { q: "Which planet is closest to the Sun?", opts: ["Mercury", "Venus", "Earth", "Mars"], ans: 0 },
+  { q: "How many players are there in a cricket team?", opts: ["9", "10", "11", "12"], ans: 2 },
+  { q: "How many minutes are there in one hour?", opts: ["30", "45", "60", "90"], ans: 2 },
+  { q: "How many seconds are there in one minute?", opts: ["30", "45", "60", "100"], ans: 2 },
+  { q: "What is the value of 15 × 2?", opts: ["20", "25", "30", "35"], ans: 2 },
+  { q: "What is the value of 100 ÷ 4?", opts: ["20", "25", "30", "40"], ans: 1 },
+  { q: "What is the value of 9 + 8?", opts: ["15", "16", "17", "18"], ans: 2 },
+
+  { q: "Which device is used to type text into a computer?", opts: ["Mouse", "Keyboard", "Monitor", "Printer"], ans: 1 },
+  { q: "Which device displays computer output?", opts: ["Monitor", "Keyboard", "Scanner", "Speaker"], ans: 0 },
+  { q: "What does CPU stand for?", opts: ["Central Processing Unit", "Computer Power Unit", "Central Program Utility", "Control Processing User"], ans: 0 },
+  { q: "Which one is an input device?", opts: ["Monitor", "Printer", "Keyboard", "Speaker"], ans: 2 },
+  { q: "Which one is an output device?", opts: ["Mouse", "Keyboard", "Printer", "Scanner"], ans: 2 },
+  { q: "Which data structure works on FIFO?", opts: ["Stack", "Queue", "Tree", "Graph"], ans: 1 },
+  { q: "Which data structure works on LIFO?", opts: ["Queue", "Stack", "Array", "Linked List"], ans: 1 },
+  { q: "Which symbol is used for comments in JavaScript single-line comments?", opts: ["//", "/*", "#", "<!--"], ans: 0 },
+  { q: "Which keyword is used to declare a constant in JavaScript?", opts: ["var", "let", "const", "static"], ans: 2 },
+  { q: "Which command is used to create a React app with Vite?", opts: ["npm create vite@latest", "npm start vite", "react new app", "vite install react"], ans: 0 },
 ];
 function TriviaGame() {
-  const [questions] = useState(() => [...TRIVIA].sort(() => Math.random() - 0.5).slice(0, 7));
+  const QUESTIONS_PER_GAME = 10;
+
+  const getRandomQuestions = () => {
+    return [...TRIVIA]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, QUESTIONS_PER_GAME);
+  };
+
+  const [questions, setQuestions] = useState(getRandomQuestions);
   const [idx, setIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [selected, setSelected] = useState(null);
   const [done, setDone] = useState(false);
 
   const q = questions[idx];
+
   const handleAnswer = (i) => {
     if (selected !== null) return;
+
     setSelected(i);
-    if (i === q.ans) setScore(s => s + 1);
+
+    if (i === q.ans) {
+      setScore(s => s + 1);
+    }
+
     setTimeout(() => {
-      if (idx + 1 >= questions.length) setDone(true);
-      else { setIdx(i => i + 1); setSelected(null); }
+      if (idx + 1 >= questions.length) {
+        setDone(true);
+      } else {
+        setIdx(prev => prev + 1);
+        setSelected(null);
+      }
     }, 1000);
   };
 
-  const reset = () => { setIdx(0); setScore(0); setSelected(null); setDone(false); };
+  const reset = () => {
+    setQuestions(getRandomQuestions());
+    setIdx(0);
+    setScore(0);
+    setSelected(null);
+    setDone(false);
+  };
 
   if (done) return (
     <div style={{ textAlign: "center", padding: "30px 20px" }}>
-      <div style={{ fontSize: "3rem", marginBottom: 12 }}>{score >= 5 ? "🏆" : score >= 3 ? "👍" : "📚"}</div>
-      <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#e8eaf6", marginBottom: 8 }}>{score}/{questions.length}</div>
-      <div style={{ color: "#8892b0", marginBottom: 20 }}>{score >= 6 ? "Genius!" : score >= 4 ? "Well done!" : "Keep learning!"}</div>
-      <button className="btn-primary" onClick={reset} style={{ padding: "10px 28px" }}>Play Again</button>
+      <div style={{ fontSize: "3rem", marginBottom: 12 }}>
+        {score >= 8 ? "🏆" : score >= 5 ? "👍" : "📚"}
+      </div>
+
+      <div style={{
+        fontSize: "1.5rem",
+        fontWeight: 800,
+        color: "#e8eaf6",
+        marginBottom: 8
+      }}>
+        {score}/{questions.length}
+      </div>
+
+      <div style={{ color: "#8892b0", marginBottom: 20 }}>
+        {score >= 9 ? "Excellent!" : score >= 7 ? "Great job!" : score >= 5 ? "Good effort!" : "Keep learning!"}
+      </div>
+
+      <button className="btn-primary" onClick={reset} style={{ padding: "10px 28px" }}>
+        Play Again
+      </button>
     </div>
   );
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div style={{ fontSize: "0.82rem", color: "#4a5568" }}>Question {idx + 1} / {questions.length}</div>
-        <div className="card" style={{ padding: "6px 14px" }}><span style={{ fontWeight: 700, color: "#ffd166" }}>{score}</span> <span style={{ fontSize: "0.7rem", color: "#4a5568" }}>pts</span></div>
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 16
+      }}>
+        <div style={{ fontSize: "0.82rem", color: "#4a5568" }}>
+          Question {idx + 1} / {questions.length}
+        </div>
+
+        <div className="card" style={{ padding: "6px 14px" }}>
+          <span style={{ fontWeight: 700, color: "#ffd166" }}>{score}</span>
+          <span style={{ fontSize: "0.7rem", color: "#4a5568" }}> pts</span>
+        </div>
       </div>
-      <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 99, marginBottom: 20 }}>
-        <div style={{ height: "100%", width: `${((idx) / questions.length) * 100}%`, background: "linear-gradient(90deg,#7c5cfc,#00d4aa)", borderRadius: 99, transition: "width 0.4s" }} />
+
+      <div style={{
+        height: 6,
+        background: "rgba(255,255,255,0.06)",
+        borderRadius: 99,
+        marginBottom: 20
+      }}>
+        <div style={{
+          height: "100%",
+          width: `${((idx + 1) / questions.length) * 100}%`,
+          background: "linear-gradient(90deg,#7c5cfc,#00d4aa)",
+          borderRadius: 99,
+          transition: "width 0.4s"
+        }} />
       </div>
-      <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#e8eaf6", marginBottom: 20, lineHeight: 1.5 }}>{q.q}</div>
+
+      <div style={{
+        fontSize: "1.05rem",
+        fontWeight: 700,
+        color: "#e8eaf6",
+        marginBottom: 20,
+        lineHeight: 1.5
+      }}>
+        {q.q}
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {q.opts.map((opt, i) => {
-          let bg = "rgba(255,255,255,0.04)", border = "rgba(255,255,255,0.1)", color = "#8892b0";
+          let bg = "rgba(255,255,255,0.04)";
+          let border = "rgba(255,255,255,0.1)";
+          let color = "#8892b0";
+
           if (selected !== null) {
-            if (i === q.ans) { bg = "rgba(0,212,170,0.15)"; border = "rgba(0,212,170,0.5)"; color = "#00d4aa"; }
-            else if (i === selected) { bg = "rgba(255,107,107,0.12)"; border = "rgba(255,107,107,0.4)"; color = "#ff6b6b"; }
-          } else if (selected === null) { bg = "rgba(255,255,255,0.04)"; }
+            if (i === q.ans) {
+              bg = "rgba(0,212,170,0.15)";
+              border = "rgba(0,212,170,0.5)";
+              color = "#00d4aa";
+            } else if (i === selected) {
+              bg = "rgba(255,107,107,0.12)";
+              border = "rgba(255,107,107,0.4)";
+              color = "#ff6b6b";
+            }
+          }
+
           return (
-            <button key={i} onClick={() => handleAnswer(i)} style={{ padding: "12px 18px", borderRadius: 10, border: `1px solid ${border}`, background: bg, color, textAlign: "left", fontSize: "0.92rem", cursor: selected !== null ? "default" : "pointer", transition: "all 0.3s", fontWeight: selected !== null && i === q.ans ? 700 : 400 }}>{opt}</button>
+            <button
+              key={i}
+              onClick={() => handleAnswer(i)}
+              style={{
+                padding: "12px 18px",
+                borderRadius: 10,
+                border: `1px solid ${border}`,
+                background: bg,
+                color,
+                textAlign: "left",
+                fontSize: "0.92rem",
+                cursor: selected !== null ? "default" : "pointer",
+                transition: "all 0.3s",
+                fontWeight: selected !== null && i === q.ans ? 700 : 400
+              }}
+            >
+              {opt}
+            </button>
           );
         })}
       </div>
@@ -791,8 +936,1406 @@ function TriviaGame() {
   );
 }
 
-// ─── GAME REGISTRY ────────────────────────────────────────────────────────────
+// ─── 13. COLOR MATCHER ────────────────────────────────────────────────────────
+function ColorMatcher() {
+  const COLORS = [
+    { name: "RED", color: "#ff6b6b" },
+    { name: "BLUE", color: "#4cc9f0" },
+    { name: "GREEN", color: "#06d6a0" },
+    { name: "YELLOW", color: "#ffd166" },
+    { name: "PURPLE", color: "#7c5cfc" },
+    { name: "ORANGE", color: "#f8961e" },
+  ];
+  
+  const [current, setCurrent] = useState(null);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [timer, setTimer] = useState(30);
+  const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+
+  const genQuestion = () => {
+    const textColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const displayColor = COLORS[Math.floor(Math.random() * COLORS.length)];
+    setCurrent({ textColor, displayColor });
+  };
+
+  useEffect(() => {
+    if (started && !gameOver) {
+      const interval = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) { setGameOver(true); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [started, gameOver]);
+
+  const start = () => {
+    setScore(0); setStreak(0); setTimer(30); setStarted(true); setGameOver(false);
+    genQuestion();
+  };
+
+  const handleAnswer = (correct) => {
+    if (gameOver) return;
+    if (!started) setStarted(true);
+    
+    const isCorrect = correct === (current.textColor.name === current.displayColor.name);
+    if (isCorrect) {
+      setScore(s => s + 10 + streak * 2);
+      setStreak(s => s + 1);
+    } else {
+      setStreak(0);
+    }
+    genQuestion();
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        {[{ l: "Score", v: score, c: "#ffd166" }, { l: "Streak", v: `🔥 ${streak}`, c: "#f72585" }, { l: "Time", v: `${timer}s`, c: timer < 10 ? "#ff6b6b" : "#00d4aa" }].map(s => (
+          <div key={s.l} className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+            <div style={{ fontSize: "1rem", fontWeight: 700, color: s.c }}>{s.v}</div>
+            <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {gameOver ? (
+        <div style={{ textAlign: "center", padding: 30 }}>
+          <div style={{ fontSize: "3rem", marginBottom: 12 }}>🎨</div>
+          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#e8eaf6", marginBottom: 8 }}>Final Score: {score}</div>
+          <button className="btn-primary" onClick={start}>Play Again</button>
+        </div>
+      ) : !started ? (
+        <div style={{ textAlign: "center", padding: 30 }}>
+          <div style={{ fontSize: "2rem", marginBottom: 12 }}>🎨</div>
+          <div style={{ fontSize: "0.9rem", color: "#8892b0", marginBottom: 20, lineHeight: 1.6 }}>Click "MATCH" if the word and color match.<br/>Click "DIFFERENT" if they don't match.</div>
+          <button className="btn-primary" onClick={start}>Start Game</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ textAlign: "center", padding: 40, background: "rgba(255,255,255,0.03)", borderRadius: 14, marginBottom: 20 }}>
+            <div style={{ fontSize: "3rem", fontWeight: 900, color: current?.displayColor.color, marginBottom: 10 }}>
+              {current?.textColor.name}
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "#4a5568" }}>Does the word match the color?</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <button className="btn-primary" onClick={() => handleAnswer(true)} style={{ padding: 16, background: "linear-gradient(135deg,#00d4aa,#06d6a0)" }}>✓ MATCH</button>
+            <button className="btn-primary" onClick={() => handleAnswer(false)} style={{ padding: 16, background: "linear-gradient(135deg,#ff6b6b,#f72585)" }}>✗ DIFFERENT</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── 14. NUMBER SEQUENCE ──────────────────────────────────────────────────────
+function SequenceNumbers() {
+  const genSequence = (level) => {
+    const types = ["arithmetic", "geometric", "fibonacci", "squares"];
+    const type = types[Math.floor(Math.random() * Math.min(level, types.length))];
+    
+    if (type === "arithmetic") {
+      const start = Math.floor(Math.random() * 20) + 1;
+      const diff = Math.floor(Math.random() * 5) + 2;
+      return { seq: [start, start + diff, start + 2*diff, start + 3*diff], ans: start + 4*diff };
+    } else if (type === "geometric") {
+      const start = Math.floor(Math.random() * 5) + 2;
+      const ratio = 2;
+      return { seq: [start, start * ratio, start * ratio * ratio, start * ratio * ratio * ratio], ans: start * ratio * ratio * ratio * ratio };
+    } else if (type === "fibonacci") {
+      const a = 1, b = 1;
+      return { seq: [a, b, a+b, a+2*b], ans: 2*a+3*b };
+    } else {
+      const n = Math.floor(Math.random() * 3) + 2;
+      return { seq: [n*n, (n+1)*(n+1), (n+2)*(n+2), (n+3)*(n+3)], ans: (n+4)*(n+4) };
+    }
+  };
+
+  const [level, setLevel] = useState(1);
+  const [current, setCurrent] = useState(() => genSequence(1));
+  const [input, setInput] = useState("");
+  const [score, setScore] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+
+  const submit = () => {
+    if (input === "") return;
+    if (parseInt(input) === current.ans) {
+      setScore(s => s + level * 5);
+      setLevel(l => l + 1);
+      setFeedback("correct");
+      setTimeout(() => {
+        setFeedback(null);
+        setCurrent(genSequence(level + 1));
+        setInput("");
+      }, 800);
+    } else {
+      setFeedback("wrong");
+      setTimeout(() => {
+        setFeedback(null);
+        setCurrent(genSequence(level));
+        setInput("");
+      }, 1200);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#7c5cfc" }}>{score}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+        </div>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#00d4aa" }}>{level}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Level</div>
+        </div>
+      </div>
+
+      <div style={{ textAlign: "center", padding: 30, background: "rgba(255,255,255,0.03)", borderRadius: 14, marginBottom: 16 }}>
+        <div style={{ fontSize: "0.8rem", color: "#4a5568", marginBottom: 12 }}>What's the next number?</div>
+        <div style={{ fontSize: "2rem", fontWeight: 800, color: "#e8eaf6", letterSpacing: 8 }}>
+          {current.seq.join(" , ")} , ?
+        </div>
+        {feedback && (
+          <div style={{ fontSize: "0.9rem", color: feedback === "correct" ? "#00d4aa" : "#ff6b6b", marginTop: 12 }}>
+            {feedback === "correct" ? "✓ Correct!" : `✗ Answer: ${current.ans}`}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <input type="number" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} placeholder="Next number..." style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 16px", color: "#e8eaf6", fontSize: "1.1rem", textAlign: "center" }} />
+        <button className="btn-primary" onClick={submit} style={{ padding: "10px 24px" }}>Check</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── 15. CARD FLIP ────────────────────────────────────────────────────────────
+function CardFlip() {
+  const [cards, setCards] = useState(Array(16).fill(false));
+  const [flips, setFlips] = useState(0);
+  const [won, setWon] = useState(false);
+
+  const handleFlip = (i) => {
+    const newCards = [...cards];
+    newCards[i] = !newCards[i];
+    
+    // Flip adjacent cards
+    if (i > 3) newCards[i-4] = !newCards[i-4]; // top
+    if (i < 12) newCards[i+4] = !newCards[i+4]; // bottom
+    if (i % 4 !== 0) newCards[i-1] = !newCards[i-1]; // left
+    if (i % 4 !== 3) newCards[i+1] = !newCards[i+1]; // right
+    
+    setCards(newCards);
+    setFlips(f => f + 1);
+    
+    if (newCards.every(c => c)) setWon(true);
+  };
+
+  const reset = () => {
+    const randomCards = Array(16).fill(false).map(() => Math.random() > 0.5);
+    setCards(randomCards);
+    setFlips(0);
+    setWon(false);
+  };
+
+  useEffect(() => { reset(); }, []);
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <div className="card" style={{ padding: "8px 20px" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#4cc9f0" }}>{flips}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Flips</div>
+        </div>
+        <button className="btn-ghost" onClick={reset}>↺ New</button>
+      </div>
+
+      {won && (
+        <div style={{ textAlign: "center", padding: 12, background: "rgba(0,212,170,0.1)", borderRadius: 10, marginBottom: 14, color: "#00d4aa", fontWeight: 700 }}>
+          🎉 All cards flipped in {flips} moves!
+        </div>
+      )}
+
+      <div style={{ fontSize: "0.8rem", color: "#8892b0", marginBottom: 14 }}>Click a card to flip it and its neighbors. Flip all cards!</div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+        {cards.map((flipped, i) => (
+          <button key={i} onClick={() => handleFlip(i)} style={{
+            aspectRatio: "1",
+            borderRadius: 10,
+            border: `2px solid ${flipped ? "rgba(0,212,170,0.5)" : "rgba(255,255,255,0.1)"}`,
+            background: flipped ? "rgba(0,212,170,0.2)" : "rgba(255,255,255,0.04)",
+            fontSize: "1.5rem",
+            cursor: "pointer",
+            transition: "all 0.3s",
+          }}>
+            {flipped ? "✓" : ""}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── 16. MENTAL MATH ──────────────────────────────────────────────────────────
+function MentalMath() {
+  const genProblem = () => {
+    const ops = [
+      () => {
+        const a = Math.floor(Math.random() * 90) + 10;
+        const b = Math.floor(Math.random() * 90) + 10;
+        return { q: `${a} + ${b}`, ans: a + b };
+      },
+      () => {
+        const a = Math.floor(Math.random() * 90) + 10;
+        const b = Math.floor(Math.random() * a);
+        return { q: `${a} - ${b}`, ans: a - b };
+      },
+      () => {
+        const a = Math.floor(Math.random() * 12) + 2;
+        const b = Math.floor(Math.random() * 12) + 2;
+        return { q: `${a} × ${b}`, ans: a * b };
+      },
+    ];
+    return ops[Math.floor(Math.random() * ops.length)]();
+  };
+
+  const [problem, setProblem] = useState(genProblem);
+  const [options, setOptions] = useState([]);
+  const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [timer, setTimer] = useState(60);
+  const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+
+  useEffect(() => {
+    const opts = [problem.ans];
+    while (opts.length < 4) {
+      const wrong = problem.ans + Math.floor(Math.random() * 20) - 10;
+      if (!opts.includes(wrong) && wrong > 0) opts.push(wrong);
+    }
+    setOptions(opts.sort(() => Math.random() - 0.5));
+  }, [problem]);
+
+  useEffect(() => {
+    if (started && !gameOver) {
+      const interval = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) { setGameOver(true); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [started, gameOver]);
+
+  const handleAnswer = (ans) => {
+    if (!started) setStarted(true);
+    if (ans === problem.ans) {
+      setScore(s => s + 10 + combo);
+      setCombo(c => c + 1);
+    } else {
+      setCombo(0);
+    }
+    setProblem(genProblem());
+  };
+
+  const restart = () => {
+    setScore(0); setCombo(0); setTimer(60); setStarted(false); setGameOver(false);
+    setProblem(genProblem());
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        {[{ l: "Score", v: score, c: "#ffd166" }, { l: "Combo", v: `🔥${combo}`, c: "#f72585" }, { l: "Time", v: `${timer}s`, c: timer < 15 ? "#ff6b6b" : "#00d4aa" }].map(s => (
+          <div key={s.l} className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+            <div style={{ fontSize: "1rem", fontWeight: 700, color: s.c }}>{s.v}</div>
+            <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {gameOver ? (
+        <div style={{ textAlign: "center", padding: 30 }}>
+          <div style={{ fontSize: "3rem", marginBottom: 12 }}>🧮</div>
+          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#e8eaf6", marginBottom: 20 }}>Final: {score}</div>
+          <button className="btn-primary" onClick={restart}>Play Again</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ textAlign: "center", padding: 30, background: "rgba(255,255,255,0.03)", borderRadius: 14, marginBottom: 16 }}>
+            <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#e8eaf6" }}>{problem.q} = ?</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {options.map((opt, i) => (
+              <button key={i} onClick={() => handleAnswer(opt)} className="btn-primary" style={{ padding: 16, fontSize: "1.2rem" }}>
+                {opt}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── 17. VISUAL MEMORY ────────────────────────────────────────────────────────
+function VisualMemory() {
+  const SIZE = 5;
+  const [level, setLevel] = useState(1);
+  const [pattern, setPattern] = useState([]);
+  const [shown, setShown] = useState(false);
+  const [phase, setPhase] = useState("idle");
+  const [selected, setSelected] = useState([]);
+  const [score, setScore] = useState(0);
+
+  const genPattern = (lv) => {
+    const count = lv + 2;
+    const cells = [];
+    while (cells.length < count) {
+      const cell = Math.floor(Math.random() * SIZE * SIZE);
+      if (!cells.includes(cell)) cells.push(cell);
+    }
+    return cells;
+  };
+
+  const showPattern = async (pat) => {
+    setPattern(pat);
+    setShown(true);
+    setPhase("showing");
+    await new Promise(r => setTimeout(r, 2000 + level * 300));
+    setShown(false);
+    setPhase("recall");
+  };
+
+  const start = () => {
+    const pat = genPattern(level);
+    setSelected([]);
+    setScore(0);
+    setLevel(1);
+    showPattern(pat);
+  };
+
+  const handleClick = (i) => {
+    if (phase !== "recall") return;
+    const ns = [...selected, i];
+    setSelected(ns);
+    
+    if (ns.length === pattern.length) {
+      const correct = ns.every(v => pattern.includes(v));
+      if (correct) {
+        setScore(s => s + level);
+        const nl = level + 1;
+        setLevel(nl);
+        setTimeout(() => {
+          const pat = genPattern(nl);
+          setSelected([]);
+          showPattern(pat);
+        }, 1000);
+      } else {
+        setPhase("wrong");
+      }
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 10 }}>
+          <div className="card" style={{ padding: "8px 14px" }}>
+            <div style={{ fontSize: "1rem", fontWeight: 700, color: "#7c5cfc" }}>{score}</div>
+            <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+          </div>
+          <div className="card" style={{ padding: "8px 14px" }}>
+            <div style={{ fontSize: "1rem", fontWeight: 700, color: "#ffd166" }}>{level}</div>
+            <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Level</div>
+          </div>
+        </div>
+        <div style={{ fontSize: "0.85rem", color: "#8892b0" }}>
+          {phase === "showing" ? "👀 Memorize..." : phase === "recall" ? "🎯 Click the squares!" : ""}
+        </div>
+      </div>
+
+      {phase === "wrong" && (
+        <div style={{ textAlign: "center", padding: 12, background: "rgba(255,107,107,0.1)", borderRadius: 10, marginBottom: 14, color: "#ff6b6b", fontWeight: 700 }}>
+          ❌ Wrong! Final level: {level}
+        </div>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${SIZE}, 1fr)`, gap: 6, marginBottom: 16, maxWidth: 300, margin: "0 auto 16px" }}>
+        {Array.from({ length: SIZE * SIZE }, (_, i) => {
+          const isPattern = pattern.includes(i);
+          const isSelected = selected.includes(i);
+          const show = shown && isPattern;
+          
+          return (
+            <button key={i} onClick={() => handleClick(i)} style={{
+              aspectRatio: "1",
+              borderRadius: 8,
+              border: `2px solid ${show || isSelected ? "rgba(124,92,252,0.6)" : "rgba(255,255,255,0.1)"}`,
+              background: show || isSelected ? "rgba(124,92,252,0.3)" : "rgba(255,255,255,0.04)",
+              cursor: phase === "recall" ? "pointer" : "default",
+              transition: "all 0.2s",
+            }} />
+          );
+        })}
+      </div>
+
+      {phase === "idle" && (
+        <button className="btn-primary" onClick={start} style={{ width: "100%", padding: 12 }}>
+          {phase === "wrong" ? "🔄 Try Again" : "▶ Start"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── 18. QUICK DRAW ───────────────────────────────────────────────────────────
+function QuickDraw() {
+  const SHAPES = ["🔴", "🟦", "🟢", "🟡", "🟣", "🟤"];
+  const [target, setTarget] = useState(null);
+  const [options, setOptions] = useState([]);
+  const [score, setScore] = useState(0);
+  const [timer, setTimer] = useState(45);
+  const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+
+  const newRound = () => {
+    const t = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+    setTarget(t);
+    const opts = [t];
+    while (opts.length < 6) {
+      const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
+      if (!opts.includes(shape)) opts.push(shape);
+    }
+    setOptions(opts.sort(() => Math.random() - 0.5));
+  };
+
+  useEffect(() => {
+    if (started && !gameOver) {
+      const interval = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) { setGameOver(true); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [started, gameOver]);
+
+  const handleClick = (shape) => {
+    if (!started) setStarted(true);
+    if (shape === target) {
+      setScore(s => s + 1);
+    }
+    newRound();
+  };
+
+  const restart = () => {
+    setScore(0); setTimer(45); setStarted(false); setGameOver(false);
+    newRound();
+  };
+
+  useEffect(() => { newRound(); }, []);
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#00d4aa" }}>{score}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+        </div>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: timer < 10 ? "#ff6b6b" : "#ffd166" }}>{timer}s</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Time</div>
+        </div>
+      </div>
+
+      {gameOver ? (
+        <div style={{ textAlign: "center", padding: 30 }}>
+          <div style={{ fontSize: "3rem", marginBottom: 12 }}>⚡</div>
+          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#e8eaf6", marginBottom: 20 }}>Score: {score}</div>
+          <button className="btn-primary" onClick={restart}>Play Again</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ textAlign: "center", padding: 30, background: "rgba(255,255,255,0.03)", borderRadius: 14, marginBottom: 16 }}>
+            <div style={{ fontSize: "0.8rem", color: "#8892b0", marginBottom: 12 }}>Find this shape:</div>
+            <div style={{ fontSize: "4rem" }}>{target}</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            {options.map((shape, i) => (
+              <button key={i} onClick={() => handleClick(shape)} style={{
+                padding: 20,
+                fontSize: "2.5rem",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.04)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}>
+                {shape}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── 19. LETTER CHAIN ─────────────────────────────────────────────────────────
+function LetterChain() {
+  const WORDS = ["APPLE","ELEPHANT","TIGER","ROBOT","TABLE","EARTH","HOUSE","SMILE","ENERGY","YELLOW"];
+  
+  const [chain, setChain] = useState(["APPLE"]);
+  const [input, setInput] = useState("");
+  const [score, setScore] = useState(0);
+  const [used, setUsed] = useState(["APPLE"]);
+  const [error, setError] = useState(null);
+
+  const submit = () => {
+    const word = input.toUpperCase().trim();
+    const lastWord = chain[chain.length - 1];
+    const lastLetter = lastWord[lastWord.length - 1];
+    
+    if (word.length < 3) {
+      setError("Too short! (min 3 letters)");
+      return;
+    }
+    if (!word.startsWith(lastLetter)) {
+      setError(`Must start with "${lastLetter}"`);
+      return;
+    }
+    if (used.includes(word)) {
+      setError("Already used!");
+      return;
+    }
+    
+    setChain([...chain, word]);
+    setUsed([...used, word]);
+    setScore(s => s + word.length);
+    setInput("");
+    setError(null);
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#7c5cfc" }}>{score}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+        </div>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#ffd166" }}>{chain.length}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Chain</div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: "0.85rem", color: "#8892b0", marginBottom: 14, lineHeight: 1.6 }}>
+        Each word must start with the last letter of the previous word. No repeats!
+      </div>
+
+      <div style={{ padding: 14, background: "rgba(255,255,255,0.03)", borderRadius: 10, marginBottom: 14, maxHeight: 200, overflow: "auto" }}>
+        {chain.map((word, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ fontSize: "0.75rem", color: "#4a5568" }}>{i + 1}.</div>
+            <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#e8eaf6" }}>{word}</div>
+          </div>
+        ))}
+      </div>
+
+      {error && (
+        <div style={{ padding: 8, background: "rgba(255,107,107,0.1)", borderRadius: 8, marginBottom: 12, color: "#ff6b6b", fontSize: "0.85rem", textAlign: "center" }}>
+          {error}
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} placeholder={`Start with "${chain[chain.length - 1][chain[chain.length - 1].length - 1]}"...`} style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 14px", color: "#e8eaf6", fontSize: "1rem", textTransform: "uppercase" }} />
+        <button className="btn-primary" onClick={submit}>Add →</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── 20. RHYTHM TAPPER ────────────────────────────────────────────────────────
+function RhythmTapper() {
+  const [pattern, setPattern] = useState([]);
+  const [taps, setTaps] = useState([]);
+  const [phase, setPhase] = useState("idle");
+  const [score, setScore] = useState(0);
+  const [level, setLevel] = useState(1);
+
+  const genPattern = (lv) => {
+    const len = lv + 2;
+    return Array.from({ length: len }, () => Math.floor(Math.random() * 500) + 200);
+  };
+
+  const playPattern = async (pat) => {
+    setPhase("showing");
+    setTaps([]);
+    
+    for (let i = 0; i < pat.length; i++) {
+      setPhase(`showing-${i}`);
+      await new Promise(r => setTimeout(r, pat[i]));
+    }
+    
+    setPhase("input");
+  };
+
+  const start = () => {
+    const pat = genPattern(level);
+    setPattern(pat);
+    setScore(0);
+    setLevel(1);
+    playPattern(pat);
+  };
+
+  const handleTap = () => {
+    if (phase !== "input") return;
+    
+    const now = Date.now();
+    const newTaps = [...taps, now];
+    setTaps(newTaps);
+    
+    if (newTaps.length === pattern.length) {
+      // Calculate accuracy
+      const intervals = [];
+      for (let i = 1; i < newTaps.length; i++) {
+        intervals.push(newTaps[i] - newTaps[i-1]);
+      }
+      
+      let correct = true;
+      for (let i = 0; i < intervals.length; i++) {
+        const diff = Math.abs(intervals[i] - pattern[i]);
+        if (diff > 150) correct = false;
+      }
+      
+      if (correct) {
+        setScore(s => s + level);
+        const nl = level + 1;
+        setLevel(nl);
+        setTimeout(() => {
+          const pat = genPattern(nl);
+          setPattern(pat);
+          playPattern(pat);
+        }, 1000);
+      } else {
+        setPhase("wrong");
+      }
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#f72585" }}>{score}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+        </div>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#00d4aa" }}>{level}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Level</div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: "0.85rem", color: "#8892b0", marginBottom: 16, textAlign: "center" }}>
+        {phase.startsWith("showing") ? "👀 Watch the rhythm..." : phase === "input" ? "🎵 Tap it back!" : "Press Start"}
+      </div>
+
+      {phase === "wrong" && (
+        <div style={{ textAlign: "center", padding: 12, background: "rgba(255,107,107,0.1)", borderRadius: 10, marginBottom: 14, color: "#ff6b6b", fontWeight: 700 }}>
+          ❌ Wrong rhythm!
+        </div>
+      )}
+
+      <button onClick={phase === "input" ? handleTap : undefined} style={{
+        width: "100%",
+        height: 200,
+        borderRadius: 16,
+        border: `3px solid ${phase.startsWith("showing") ? "#ffd166" : "rgba(255,255,255,0.1)"}`,
+        background: phase.startsWith("showing") ? "rgba(255,209,102,0.3)" : "rgba(255,255,255,0.04)",
+        fontSize: "3rem",
+        cursor: phase === "input" ? "pointer" : "default",
+        transition: "all 0.1s",
+        marginBottom: 16,
+      }}>
+        {phase === "input" ? "🥁" : "🎵"}
+      </button>
+
+      {phase === "idle" && (
+        <button className="btn-primary" onClick={start} style={{ width: "100%", padding: 12 }}>
+          {phase === "wrong" ? "🔄 Try Again" : "▶ Start"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ─── 21. WORD HUNT ────────────────────────────────────────────────────────────
+function WordHunt() {
+  const GRID_SIZE = 4;
+  const WORDS = ["CAT","DOG","RAT","BAT","HAT","PIG","COW","FOX","BEE"];
+  
+  const genGrid = () => {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    return Array(GRID_SIZE).fill(null).map(() =>
+      Array(GRID_SIZE).fill(null).map(() =>
+        letters[Math.floor(Math.random() * letters.length)]
+      )
+    );
+  };
+
+  const [grid] = useState(genGrid);
+  const [found, setFound] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [currentWord, setCurrentWord] = useState("");
+
+  const handleSelect = (r, c) => {
+    const cell = `${r}-${c}`;
+    if (selected.includes(cell)) return;
+    
+    const newSelected = [...selected, cell];
+    const newWord = currentWord + grid[r][c];
+    
+    setSelected(newSelected);
+    setCurrentWord(newWord);
+    
+    if (WORDS.includes(newWord) && !found.includes(newWord)) {
+      setFound([...found, newWord]);
+      setSelected([]);
+      setCurrentWord("");
+    }
+  };
+
+  const reset = () => {
+    setSelected([]);
+    setCurrentWord("");
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <div className="card" style={{ padding: "8px 20px" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#00d4aa" }}>{found.length}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Found</div>
+        </div>
+        <button className="btn-ghost" onClick={reset}>Clear</button>
+      </div>
+
+      {currentWord && (
+        <div style={{ textAlign: "center", padding: 10, background: "rgba(124,92,252,0.1)", borderRadius: 8, marginBottom: 12 }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#7c5cfc" }}>{currentWord}</div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+        {found.map(word => (
+          <div key={word} style={{ padding: "4px 10px", background: "rgba(0,212,170,0.15)", borderRadius: 6, fontSize: "0.8rem", color: "#00d4aa", fontWeight: 700 }}>
+            {word}
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, gap: 6, marginBottom: 14 }}>
+        {grid.map((row, r) => row.map((letter, c) => {
+          const cell = `${r}-${c}`;
+          const isSelected = selected.includes(cell);
+          
+          return (
+            <button key={cell} onClick={() => handleSelect(r, c)} style={{
+              aspectRatio: "1",
+              borderRadius: 10,
+              border: `2px solid ${isSelected ? "rgba(124,92,252,0.6)" : "rgba(255,255,255,0.1)"}`,
+              background: isSelected ? "rgba(124,92,252,0.2)" : "rgba(255,255,255,0.04)",
+              fontSize: "1.3rem",
+              fontWeight: 700,
+              color: "#e8eaf6",
+              cursor: "pointer",
+            }}>
+              {letter}
+            </button>
+          );
+        }))}
+      </div>
+
+      <div style={{ fontSize: "0.75rem", color: "#8892b0" }}>
+        Find: {WORDS.join(", ")}
+      </div>
+    </div>
+  );
+}
+
+// ─── 22. SPOT THE DIFFERENCE ──────────────────────────────────────────────────
+function SpotDifference() {
+  const SIZE = 6;
+  const [grid1, setGrid1] = useState([]);
+  const [grid2, setGrid2] = useState([]);
+  const [differences, setDifferences] = useState([]);
+  const [found, setFound] = useState([]);
+  const [won, setWon] = useState(false);
+
+  const genGrids = () => {
+    const emojis = ["🌟","🎈","🎨","🎭","🎪","🎯","🎲","🎸","🎹","🎺","🎻","🎼"];
+    const g = Array(SIZE).fill(null).map(() =>
+      Array(SIZE).fill(null).map(() => emojis[Math.floor(Math.random() * emojis.length)])
+    );
+    
+    const g2 = g.map(row => [...row]);
+    const diffs = [];
+    
+    for (let i = 0; i < 5; i++) {
+      const r = Math.floor(Math.random() * SIZE);
+      const c = Math.floor(Math.random() * SIZE);
+      const cell = `${r}-${c}`;
+      
+      if (!diffs.includes(cell)) {
+        g2[r][c] = emojis[Math.floor(Math.random() * emojis.length)];
+        diffs.push(cell);
+      }
+    }
+    
+    setGrid1(g);
+    setGrid2(g2);
+    setDifferences(diffs);
+    setFound([]);
+    setWon(false);
+  };
+
+  useEffect(() => { genGrids(); }, []);
+
+  const handleClick = (r, c) => {
+    const cell = `${r}-${c}`;
+    if (found.includes(cell)) return;
+    
+    if (differences.includes(cell)) {
+      const newFound = [...found, cell];
+      setFound(newFound);
+      if (newFound.length === differences.length) setWon(true);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <div className="card" style={{ padding: "8px 20px" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#ffd166" }}>{found.length}/{differences.length}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Found</div>
+        </div>
+        <button className="btn-ghost" onClick={genGrids}>↺ New</button>
+      </div>
+
+      {won && (
+        <div style={{ textAlign: "center", padding: 12, background: "rgba(0,212,170,0.1)", borderRadius: 10, marginBottom: 14, color: "#00d4aa", fontWeight: 700 }}>
+          🎉 All differences found!
+        </div>
+      )}
+
+      <div style={{ fontSize: "0.8rem", color: "#8892b0", marginBottom: 14, textAlign: "center" }}>
+        Find 5 differences between the grids
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        {[grid1, grid2].map((grid, gridIdx) => (
+          <div key={gridIdx}>
+            <div style={{ fontSize: "0.7rem", color: "#4a5568", marginBottom: 6, textAlign: "center" }}>
+              Grid {gridIdx + 1}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${SIZE}, 1fr)`, gap: 3 }}>
+              {grid.map((row, r) => row.map((emoji, c) => {
+                const cell = `${r}-${c}`;
+                const isFound = found.includes(cell);
+                
+                return (
+                  <button key={cell} onClick={() => gridIdx === 1 && handleClick(r, c)} style={{
+                    aspectRatio: "1",
+                    fontSize: "1rem",
+                    borderRadius: 6,
+                    border: `1px solid ${isFound ? "rgba(0,212,170,0.5)" : "rgba(255,255,255,0.1)"}`,
+                    background: isFound ? "rgba(0,212,170,0.2)" : "rgba(255,255,255,0.04)",
+                    cursor: gridIdx === 1 ? "pointer" : "default",
+                  }}>
+                    {emoji}
+                  </button>
+                );
+              }))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── 23. ANAGRAM SOLVER ───────────────────────────────────────────────────────
+function AnagramSolver() {
+  const ANAGRAMS = [
+    { word: "LISTEN", anagram: "SILENT" },
+    { word: "EARTH", anagram: "HEART" },
+    { word: "NIGHT", anagram: "THING" },
+    { word: "BREAD", anagram: "BEARD" },
+    { word: "STONE", anagram: "NOTES" },
+    { word: "SWING", anagram: "WINGS" },
+    { word: "ACTOR", anagram: "TRACT" },
+  ];
+
+  const [current, setCurrent] = useState(null);
+  const [input, setInput] = useState("");
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+
+  const newQuestion = () => {
+    const item = ANAGRAMS[Math.floor(Math.random() * ANAGRAMS.length)];
+    setCurrent(item);
+    setInput("");
+    setFeedback(null);
+  };
+
+  useEffect(() => { newQuestion(); }, []);
+
+  const submit = () => {
+    if (input.toUpperCase() === current.anagram) {
+      setScore(s => s + 10 + streak * 2);
+      setStreak(s => s + 1);
+      setFeedback("correct");
+      setTimeout(newQuestion, 800);
+    } else {
+      setStreak(0);
+      setFeedback("wrong");
+      setTimeout(() => setFeedback(null), 1200);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#7c5cfc" }}>{score}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+        </div>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#f72585" }}>🔥 {streak}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Streak</div>
+        </div>
+      </div>
+
+      <div style={{ textAlign: "center", padding: 30, background: "rgba(255,255,255,0.03)", borderRadius: 14, marginBottom: 16 }}>
+        <div style={{ fontSize: "0.8rem", color: "#8892b0", marginBottom: 12 }}>Rearrange to make a new word:</div>
+        <div style={{ fontSize: "2.5rem", fontWeight: 900, color: "#7c5cfc", letterSpacing: 6 }}>
+          {current?.word}
+        </div>
+        {feedback && (
+          <div style={{ fontSize: "0.9rem", color: feedback === "correct" ? "#00d4aa" : "#ff6b6b", marginTop: 12 }}>
+            {feedback === "correct" ? "✓ Correct!" : `✗ Answer: ${current.anagram}`}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} placeholder="Your answer..." style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "10px 16px", color: "#e8eaf6", fontSize: "1rem", textTransform: "uppercase", textAlign: "center", letterSpacing: 4 }} />
+        <button className="btn-primary" onClick={submit}>Check</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── 24. GRID NAVIGATOR ───────────────────────────────────────────────────────
+function GridNavigator() {
+  const SIZE = 5;
+  const [pos, setPos] = useState({ r: 0, c: 0 });
+  const [target, setTarget] = useState({ r: 4, c: 4 });
+  const [moves, setMoves] = useState(0);
+  const [won, setWon] = useState(false);
+  const [obstacles, setObstacles] = useState([]);
+
+  const genGame = () => {
+    const obs = [];
+    for (let i = 0; i < 5; i++) {
+      const r = Math.floor(Math.random() * SIZE);
+      const c = Math.floor(Math.random() * SIZE);
+      const cell = `${r}-${c}`;
+      if (cell !== "0-0" && cell !== "4-4" && !obs.includes(cell)) {
+        obs.push(cell);
+      }
+    }
+    setObstacles(obs);
+    setPos({ r: 0, c: 0 });
+    setTarget({ r: 4, c: 4 });
+    setMoves(0);
+    setWon(false);
+  };
+
+  useEffect(() => { genGame(); }, []);
+
+  const move = (dr, dc) => {
+    const nr = pos.r + dr;
+    const nc = pos.c + dc;
+    
+    if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) return;
+    if (obstacles.includes(`${nr}-${nc}`)) return;
+    
+    setPos({ r: nr, c: nc });
+    setMoves(m => m + 1);
+    
+    if (nr === target.r && nc === target.c) setWon(true);
+  };
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "ArrowUp") move(-1, 0);
+      if (e.key === "ArrowDown") move(1, 0);
+      if (e.key === "ArrowLeft") move(0, -1);
+      if (e.key === "ArrowRight") move(0, 1);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [pos, obstacles]);
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+        <div className="card" style={{ padding: "8px 20px" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#4cc9f0" }}>{moves}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Moves</div>
+        </div>
+        <button className="btn-ghost" onClick={genGame}>↺ New</button>
+      </div>
+
+      {won && (
+        <div style={{ textAlign: "center", padding: 12, background: "rgba(0,212,170,0.1)", borderRadius: 10, marginBottom: 14, color: "#00d4aa", fontWeight: 700 }}>
+          🎉 Target reached in {moves} moves!
+        </div>
+      )}
+
+      <div style={{ fontSize: "0.8rem", color: "#8892b0", marginBottom: 14, textAlign: "center" }}>
+        Use arrow keys or buttons to reach the target 🎯
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: `repeat(${SIZE}, 1fr)`, gap: 6, marginBottom: 16, maxWidth: 300, margin: "0 auto 16px" }}>
+        {Array.from({ length: SIZE * SIZE }, (_, i) => {
+          const r = Math.floor(i / SIZE);
+          const c = i % SIZE;
+          const cell = `${r}-${c}`;
+          const isPlayer = pos.r === r && pos.c === c;
+          const isTarget = target.r === r && target.c === c;
+          const isObstacle = obstacles.includes(cell);
+          
+          return (
+            <div key={cell} style={{
+              aspectRatio: "1",
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.1)",
+              background: isObstacle ? "rgba(255,107,107,0.2)" : "rgba(255,255,255,0.04)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.5rem",
+            }}>
+              {isPlayer ? "🚀" : isTarget ? "🎯" : isObstacle ? "🧱" : ""}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, maxWidth: 200, margin: "0 auto" }}>
+        <div />
+        <button className="btn-primary" onClick={() => move(-1, 0)} style={{ padding: 12 }}>↑</button>
+        <div />
+        <button className="btn-primary" onClick={() => move(0, -1)} style={{ padding: 12 }}>←</button>
+        <button className="btn-primary" onClick={() => move(1, 0)} style={{ padding: 12 }}>↓</button>
+        <button className="btn-primary" onClick={() => move(0, 1)} style={{ padding: 12 }}>→</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── 25. EMOJI MATCH ──────────────────────────────────────────────────────────
+function EmojiMatch() {
+  const EMOJIS = ["😀","😎","🤔","😴","🤗","😇","🥳","😜"];
+  const [target, setTarget] = useState(null);
+  const [grid, setGrid] = useState([]);
+  const [score, setScore] = useState(0);
+  const [timer, setTimer] = useState(20);
+  const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+
+  const newRound = () => {
+    const t = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    setTarget(t);
+    
+    const g = Array(16).fill(null).map(() =>
+      EMOJIS[Math.floor(Math.random() * EMOJIS.length)]
+    );
+    
+    // Ensure target exists at least once
+    const targetIdx = Math.floor(Math.random() * 16);
+    g[targetIdx] = t;
+    
+    setGrid(g);
+  };
+
+  useEffect(() => { newRound(); }, []);
+
+  useEffect(() => {
+    if (started && !gameOver) {
+      const interval = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) { setGameOver(true); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [started, gameOver]);
+
+  const handleClick = (emoji) => {
+    if (!started) setStarted(true);
+    if (emoji === target) {
+      setScore(s => s + 1);
+      newRound();
+    }
+  };
+
+  const restart = () => {
+    setScore(0); setTimer(20); setStarted(false); setGameOver(false);
+    newRound();
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#ffd166" }}>{score}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+        </div>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1.2rem", fontWeight: 700, color: timer < 5 ? "#ff6b6b" : "#00d4aa" }}>{timer}s</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Time</div>
+        </div>
+      </div>
+
+      {gameOver ? (
+        <div style={{ textAlign: "center", padding: 30 }}>
+          <div style={{ fontSize: "3rem", marginBottom: 12 }}>😊</div>
+          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#e8eaf6", marginBottom: 20 }}>Score: {score}</div>
+          <button className="btn-primary" onClick={restart}>Play Again</button>
+        </div>
+      ) : (
+        <>
+          <div style={{ textAlign: "center", padding: 20, background: "rgba(255,255,255,0.03)", borderRadius: 14, marginBottom: 16 }}>
+            <div style={{ fontSize: "0.8rem", color: "#8892b0", marginBottom: 8 }}>Find this emoji:</div>
+            <div style={{ fontSize: "3rem" }}>{target}</div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+            {grid.map((emoji, i) => (
+              <button key={i} onClick={() => handleClick(emoji)} style={{
+                aspectRatio: "1",
+                fontSize: "2rem",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.04)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}>
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── 26. LOGIC GATES ──────────────────────────────────────────────────────────
+function LogicGates() {
+  const genProblem = () => {
+    const gates = ["AND", "OR", "XOR"];
+    const gate = gates[Math.floor(Math.random() * gates.length)];
+    const a = Math.random() > 0.5;
+    const b = Math.random() > 0.5;
+    
+    let result;
+    if (gate === "AND") result = a && b;
+    else if (gate === "OR") result = a || b;
+    else result = a !== b; // XOR
+    
+    return { gate, a, b, result };
+  };
+
+  const [problem, setProblem] = useState(genProblem);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [feedback, setFeedback] = useState(null);
+
+  const handleAnswer = (ans) => {
+    if (ans === problem.result) {
+      setScore(s => s + 10 + streak * 2);
+      setStreak(s => s + 1);
+      setFeedback("correct");
+    } else {
+      setStreak(0);
+      setFeedback("wrong");
+    }
+    
+    setTimeout(() => {
+      setFeedback(null);
+      setProblem(genProblem());
+    }, 800);
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#7c5cfc" }}>{score}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Score</div>
+        </div>
+        <div className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+          <div style={{ fontSize: "1rem", fontWeight: 700, color: "#f72585" }}>🔥 {streak}</div>
+          <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>Streak</div>
+        </div>
+      </div>
+
+      <div style={{ textAlign: "center", padding: 30, background: "rgba(255,255,255,0.03)", borderRadius: 14, marginBottom: 16 }}>
+        <div style={{ fontSize: "0.8rem", color: "#8892b0", marginBottom: 16 }}>Logical {problem.gate} operation:</div>
+        <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "#e8eaf6", marginBottom: 12 }}>
+          {problem.a ? "TRUE" : "FALSE"} {problem.gate} {problem.b ? "TRUE" : "FALSE"}
+        </div>
+        <div style={{ fontSize: "1rem", color: "#8892b0" }}>= ?</div>
+        {feedback && (
+          <div style={{ fontSize: "0.9rem", color: feedback === "correct" ? "#00d4aa" : "#ff6b6b", marginTop: 12 }}>
+            {feedback === "correct" ? "✓ Correct!" : "✗ Wrong!"}
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <button className="btn-primary" onClick={() => handleAnswer(true)} style={{ padding: 16, fontSize: "1.1rem", background: "linear-gradient(135deg,#00d4aa,#06d6a0)" }}>
+          TRUE
+        </button>
+        <button className="btn-primary" onClick={() => handleAnswer(false)} style={{ padding: 16, fontSize: "1.1rem", background: "linear-gradient(135deg,#ff6b6b,#f72585)" }}>
+          FALSE
+        </button>
+      </div>
+
+      <div style={{ marginTop: 16, padding: 12, background: "rgba(255,255,255,0.02)", borderRadius: 8, fontSize: "0.75rem", color: "#8892b0", lineHeight: 1.6 }}>
+        <div><strong>AND:</strong> Both must be TRUE</div>
+        <div><strong>OR:</strong> At least one must be TRUE</div>
+        <div><strong>XOR:</strong> Exactly one must be TRUE</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── 27. REFLEX TRAINER ───────────────────────────────────────────────────────
+function ReflexTrainer() {
+  const [active, setActive] = useState(null);
+  const [score, setScore] = useState(0);
+  const [misses, setMisses] = useState(0);
+  const [timer, setTimer] = useState(30);
+  const [started, setStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+
+  const spawnTarget = () => {
+    if (!started || gameOver) return;
+    const idx = Math.floor(Math.random() * 9);
+    setActive(idx);
+    
+    const timeout = setTimeout(() => {
+      setActive(null);
+      setMisses(m => m + 1);
+      setTimeout(spawnTarget, 300);
+    }, 1000);
+  };
+
+  useEffect(() => {
+    if (started && !gameOver) {
+      const interval = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) { setGameOver(true); return 0; }
+          return t - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [started, gameOver]);
+
+  const start = () => {
+    setScore(0);
+    setMisses(0);
+    setTimer(30);
+    setStarted(true);
+    setGameOver(false);
+    setTimeout(spawnTarget, 500);
+  };
+
+  const handleClick = (idx) => {
+    if (idx === active) {
+      setScore(s => s + 1);
+      setActive(null);
+      setTimeout(spawnTarget, 300);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+        {[{ l: "Score", v: score, c: "#00d4aa" }, { l: "Misses", v: misses, c: "#ff6b6b" }, { l: "Time", v: `${timer}s`, c: timer < 10 ? "#ffd166" : "#7c5cfc" }].map(s => (
+          <div key={s.l} className="card" style={{ flex: 1, padding: 8, textAlign: "center" }}>
+            <div style={{ fontSize: "1rem", fontWeight: 700, color: s.c }}>{s.v}</div>
+            <div style={{ fontSize: "0.65rem", color: "#4a5568" }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {gameOver ? (
+        <div style={{ textAlign: "center", padding: 30 }}>
+          <div style={{ fontSize: "3rem", marginBottom: 12 }}>⚡</div>
+          <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#e8eaf6", marginBottom: 8 }}>Score: {score}</div>
+          <div style={{ fontSize: "0.9rem", color: "#8892b0", marginBottom: 20 }}>Accuracy: {score + misses > 0 ? Math.round((score / (score + misses)) * 100) : 0}%</div>
+          <button className="btn-primary" onClick={start}>Play Again</button>
+        </div>
+      ) : !started ? (
+        <div style={{ textAlign: "center", padding: 30 }}>
+          <div style={{ fontSize: "2rem", marginBottom: 12 }}>⚡</div>
+          <div style={{ fontSize: "0.9rem", color: "#8892b0", marginBottom: 20 }}>Click the red targets as fast as you can!</div>
+          <button className="btn-primary" onClick={start}>Start</button>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {Array.from({ length: 9 }, (_, i) => (
+            <button key={i} onClick={() => handleClick(i)} style={{
+              aspectRatio: "1",
+              borderRadius: 12,
+              border: `2px solid ${active === i ? "#ff6b6b" : "rgba(255,255,255,0.1)"}`,
+              background: active === i ? "rgba(255,107,107,0.3)" : "rgba(255,255,255,0.04)",
+              cursor: "pointer",
+              transition: "all 0.1s",
+              fontSize: "2rem",
+            }}>
+              {active === i ? "🎯" : ""}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── UPDATE GAME REGISTRY ────────────────────────────────────────────────────
 const gameList = [
+  // ... (keep all your existing games 1-12)
   { id: "memory", title: "Memory Match", desc: "Flip cards to find matching pairs", icon: "🧩", color: "#f72585", component: MemoryGame, tag: "Memory" },
   { id: "numbers", title: "2048 Puzzle", desc: "Combine tiles to reach 2048", icon: "🔢", color: "#ffd166", component: NumberPuzzle, tag: "Strategy" },
   { id: "reaction", title: "Reaction Test", desc: "Test your response speed", icon: "⚡", color: "#00d4aa", component: ReactionGame, tag: "Speed" },
@@ -805,7 +2348,26 @@ const gameList = [
   { id: "scramble", title: "Word Scramble", desc: "Unscramble the hidden word", icon: "🔀", color: "#f3722c", component: ScrambleGame, tag: "Language" },
   { id: "pattern", title: "Pattern Recall", desc: "Memorise the flashing pattern", icon: "💡", color: "#90be6d", component: PatternGame, tag: "Focus" },
   { id: "trivia", title: "Trivia Quiz", desc: "Test your general knowledge", icon: "❓", color: "#577590", component: TriviaGame, tag: "Knowledge" },
+  
+  // NEW GAMES 13-27
+  { id: "colorMatch", title: "Color Matcher", desc: "Match word with color quickly", icon: "🎨", color: "#e63946", component: ColorMatcher, tag: "Speed" },
+  { id: "numSeq", title: "Number Sequence", desc: "Find the next number", icon: "🔢", color: "#f4a261", component: SequenceNumbers, tag: "Math" },
+  { id: "cardFlip", title: "Card Flip", desc: "Flip all cards to win", icon: "🃏", color: "#2a9d8f", component: CardFlip, tag: "Logic" },
+  { id: "mentalMath", title: "Mental Math", desc: "Quick calculation challenge", icon: "🧮", color: "#e76f51", component: MentalMath, tag: "Math" },
+  { id: "visualMem", title: "Visual Memory", desc: "Remember the pattern", icon: "👁️", color: "#264653", component: VisualMemory, tag: "Memory" },
+  { id: "quickDraw", title: "Quick Draw", desc: "Find the shape fast", icon: "⚡", color: "#e9c46a", component: QuickDraw, tag: "Speed" },
+  { id: "letterChain", title: "Letter Chain", desc: "Build a word chain", icon: "🔗", color: "#f4a259", component: LetterChain, tag: "Language" },
+  { id: "rhythm", title: "Rhythm Tapper", desc: "Match the rhythm pattern", icon: "🥁", color: "#bc4749", component: RhythmTapper, tag: "Memory" },
+  { id: "wordHunt", title: "Word Hunt", desc: "Find words in the grid", icon: "🔍", color: "#6a994e", component: WordHunt, tag: "Language" },
+  { id: "spotDiff", title: "Spot Difference", desc: "Find the differences", icon: "👀", color: "#a7c957", component: SpotDifference, tag: "Focus" },
+  { id: "anagram", title: "Anagram Solver", desc: "Rearrange the letters", icon: "🔤", color: "#386641", component: AnagramSolver, tag: "Language" },
+  { id: "gridNav", title: "Grid Navigator", desc: "Reach the target", icon: "🧭", color: "#588157", component: GridNavigator, tag: "Strategy" },
+  { id: "emojiMatch", title: "Emoji Match", desc: "Find the matching emoji", icon: "😊", color: "#fb8500", component: EmojiMatch, tag: "Speed" },
+  { id: "logicGates", title: "Logic Gates", desc: "Solve boolean operations", icon: "🔌", color: "#8338ec", component: LogicGates, tag: "Logic" },
+  { id: "reflex", title: "Reflex Trainer", desc: "Click targets quickly", icon: "🎯", color: "#ff006e", component: ReflexTrainer, tag: "Speed" },
 ];
+
+
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 export default function MindGames() {

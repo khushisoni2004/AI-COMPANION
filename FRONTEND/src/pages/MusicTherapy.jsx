@@ -15,57 +15,161 @@ export default function MusicTherapy() {
   const [volume, setVolume] = useState(75);
   const [tracks, setTracks] = useState([]);
   const [timerId, setTimerId] = useState(null);
+  const [loadingTracks, setLoadingTracks] = useState(false);
+  const [trackError, setTrackError] = useState("");
   const [visualizerBars, setVisualizerBars] = useState(Array.from({ length: 32 }, () => 20));
 
-  const audioRef = useRef(new Audio());
+  const audioRef = useRef(null);
   const timerRef = useRef(null);
   const animRef = useRef(null);
+
   const CLIENT_ID = "f4392db1";
 
-  // Fetch tracks from Jamendo
   useEffect(() => {
-    fetch(`https://api.jamendo.com/v3.0/tracks/?client_id=${CLIENT_ID}&format=json&limit=50&tags=${activePlaylist.tag}&audioformat=mp32`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.results && data.results.length > 0) {
-          setTracks(data.results);
-          setCurrentTrack(0);
-          setProgress(0);
+    audioRef.current = new Audio();
+    audioRef.current.volume = volume / 100;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, []);
+
+  // Fetch tracks faster + cache them
+  useEffect(() => {
+    const fetchTracks = async () => {
+      setLoadingTracks(true);
+      setTrackError("");
+      setTracks([]);
+      setCurrentTrack(0);
+      setProgress(0);
+      setIsPlaying(false);
+
+      const cacheKey = `music_tracks_${activePlaylist.id}`;
+
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setTracks(parsed);
+            setLoadingTracks(false);
+            return;
+          }
         }
-      }).catch(err => console.error("Fetch error:", err));
+      } catch {
+        // ignore cache error
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const url =
+          `https://api.jamendo.com/v3.0/tracks/` +
+          `?client_id=${CLIENT_ID}` +
+          `&format=json` +
+          `&limit=20` +
+          `&tags=${activePlaylist.tag}` +
+          `&include=musicinfo` +
+          `&audioformat=mp32`;
+
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!res.ok) throw new Error("Unable to load tracks");
+
+        const data = await res.json();
+        const results = data?.results || [];
+
+        if (results.length > 0) {
+          setTracks(results);
+          localStorage.setItem(cacheKey, JSON.stringify(results));
+        } else {
+          setTrackError("No tracks found for this playlist. Try another playlist.");
+        }
+      } catch (err) {
+        if (err.name === "AbortError") {
+          setTrackError("Tracks are taking too long to load. Please check internet or try another playlist.");
+        } else {
+          setTrackError("Unable to load tracks right now. Please try again.");
+        }
+      } finally {
+        setLoadingTracks(false);
+      }
+    };
+
+    fetchTracks();
   }, [activePlaylist]);
 
-  // Load audio src when track changes
+  // Load audio when track changes
   useEffect(() => {
-    if (tracks.length > 0 && tracks[currentTrack]) {
-      audioRef.current.src = tracks[currentTrack].audio;
-      if (isPlaying) audioRef.current.play().catch(() => setIsPlaying(false));
+    if (!audioRef.current) return;
+    if (!tracks.length || !tracks[currentTrack]) return;
+
+    audioRef.current.src = tracks[currentTrack].audio;
+    audioRef.current.load();
+
+    if (isPlaying) {
+      audioRef.current.play().catch(() => setIsPlaying(false));
     }
   }, [currentTrack, tracks]);
 
-  // Play/pause
+  // Play / Pause
   useEffect(() => {
-    isPlaying ? audioRef.current.play().catch(() => setIsPlaying(false)) : audioRef.current.pause();
-  }, [isPlaying]);
+    if (!audioRef.current) return;
+
+    if (isPlaying && tracks.length > 0) {
+      audioRef.current.play().catch(() => setIsPlaying(false));
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying, tracks.length]);
 
   // Volume
   useEffect(() => {
-    audioRef.current.volume = volume / 100;
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+    }
   }, [volume]);
+
+  // Auto next track when current ends
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    const handleEnded = () => {
+      if (tracks.length > 0) {
+        setCurrentTrack(t => (t + 1) % tracks.length);
+        setProgress(0);
+        setIsPlaying(true);
+      }
+    };
+
+    audioRef.current.addEventListener("ended", handleEnded);
+    return () => audioRef.current?.removeEventListener("ended", handleEnded);
+  }, [tracks.length]);
 
   // Sleep Timer
   const handleSleepTimer = (value) => {
     if (timerRef.current) clearTimeout(timerRef.current);
+
     if (value === "Off") {
       setTimerId(null);
       return;
     }
+
     setTimerId(value);
+
     const minutes = parseInt(value);
     const ms = minutes * 60 * 1000;
+
     timerRef.current = setTimeout(() => {
       setIsPlaying(false);
-      audioRef.current.pause();
+      audioRef.current?.pause();
       setTimerId(null);
       alert(`Sleep timer (${minutes} min) complete. Music stopped.`);
     }, ms);
@@ -73,39 +177,63 @@ export default function MusicTherapy() {
 
   // Visualizer + Progress
   useEffect(() => {
-    if (isPlaying) {
-      const animate = () => {
-        setVisualizerBars(prev => prev.map(b => Math.max(8, Math.min(90, b + (Math.random() - 0.5) * 30))));
-        animRef.current = requestAnimationFrame(animate);
-      };
+    if (!isPlaying) return;
+
+    const animate = () => {
+      setVisualizerBars(prev =>
+        prev.map(b => Math.max(8, Math.min(90, b + (Math.random() - 0.5) * 30)))
+      );
       animRef.current = requestAnimationFrame(animate);
+    };
 
-      const progInterval = setInterval(() => {
-        if (audioRef.current.duration) {
-          setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100);
-        }
-      }, 1000);
+    animRef.current = requestAnimationFrame(animate);
 
-      return () => {
-        cancelAnimationFrame(animRef.current);
-        clearInterval(progInterval);
-      };
-    }
+    const progInterval = setInterval(() => {
+      if (audioRef.current?.duration) {
+        setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100);
+      }
+    }, 700);
+
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+      clearInterval(progInterval);
+    };
   }, [isPlaying]);
-
-  if (!tracks.length) return <div style={{ color: "white", padding: 20 }}>Loading tracks...</div>;
 
   const track = tracks[currentTrack] || {};
 
-  // Duration seconds → m:ss
   const formatDuration = (secs) => {
+    if (!secs || Number.isNaN(secs)) return "0:00";
     const m = Math.floor(secs / 60);
-    const s = (secs % 60).toString().padStart(2, "0");
+    const s = Math.floor(secs % 60).toString().padStart(2, "0");
     return `${m}:${s}`;
   };
 
-  // Current time from progress
   const currentSecs = track.duration ? Math.floor((progress / 100) * track.duration) : 0;
+
+  const handlePlaylistChange = (pl) => {
+    setActivePlaylist(pl);
+    setCurrentTrack(0);
+    setIsPlaying(false);
+    setProgress(0);
+  };
+
+  const handlePlayPause = () => {
+    if (!tracks.length) return;
+    setIsPlaying(prev => !prev);
+  };
+
+  const handlePrev = () => {
+    if (!tracks.length) return;
+    setCurrentTrack(t => (t - 1 + tracks.length) % tracks.length);
+    setProgress(0);
+  };
+
+  const handleNext = () => {
+    if (!tracks.length) return;
+    setCurrentTrack(t => (t + 1) % tracks.length);
+    setProgress(0);
+  };
 
   return (
     <div className="page-container">
@@ -117,22 +245,22 @@ export default function MusicTherapy() {
 
       <div style={{ display: "grid", gridTemplateColumns: "340px 1fr", gap: 24, alignItems: "start" }}>
 
-        {/* ── LEFT COLUMN: Player + Sleep Timer ── */}
+        {/* LEFT COLUMN */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-          {/* Now Playing Card */}
           <div className="card" style={{
             textAlign: "center",
             background: `linear-gradient(135deg, ${activePlaylist.color}18, rgba(13,21,38,0.95))`,
             border: `1px solid ${activePlaylist.color}25`,
           }}>
-            {/* Album Art */}
             <div style={{
-              width: 160, height: 160,
+              width: 160,
+              height: 160,
               borderRadius: "50%",
               background: `radial-gradient(circle, ${activePlaylist.color}30, ${activePlaylist.color}10)`,
               border: `3px solid ${activePlaylist.color}40`,
-              display: "flex", alignItems: "center", justifyContent: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               fontSize: "4rem",
               margin: "0 auto 20px",
               overflow: "hidden",
@@ -146,20 +274,19 @@ export default function MusicTherapy() {
               )}
             </div>
 
-            {/* Track name & artist */}
             <div style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.2rem", color: "#e8eaf6", marginBottom: 4 }}>
-              {track.name || "Loading..."}
-            </div>
-            <div style={{ fontSize: "0.82rem", color: "#8892b0", marginBottom: 16 }}>
-              {track.artist_name || "Artist"}
+              {loadingTracks ? "Loading tracks..." : track.name || "Choose a track"}
             </div>
 
-            {/* Visualizer */}
+            <div style={{ fontSize: "0.82rem", color: "#8892b0", marginBottom: 16 }}>
+              {track.artist_name || activePlaylist.title}
+            </div>
+
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center", gap: 2, height: 50, marginBottom: 20, padding: "0 8px" }}>
               {visualizerBars.map((h, i) => (
                 <div key={i} style={{
                   flex: 1,
-                  height: `${h}%`,
+                  height: `${isPlaying ? h : 20}%`,
                   borderRadius: 2,
                   background: isPlaying
                     ? `linear-gradient(180deg, ${activePlaylist.color}, ${activePlaylist.color}44)`
@@ -170,60 +297,82 @@ export default function MusicTherapy() {
               ))}
             </div>
 
-            {/* Progress Bar */}
             <div style={{ marginBottom: 16, padding: "0 4px" }}>
               <input
                 type="range"
-                min={0} max={100}
+                min={0}
+                max={100}
                 value={progress}
+                disabled={!tracks.length}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setProgress(val);
-                  if (audioRef.current.duration) {
+                  if (audioRef.current?.duration) {
                     audioRef.current.currentTime = (val / 100) * audioRef.current.duration;
                   }
                 }}
-                style={{ width: "100%", accentColor: activePlaylist.color, height: 4, cursor: "pointer" }}
+                style={{
+                  width: "100%",
+                  accentColor: activePlaylist.color,
+                  height: 4,
+                  cursor: tracks.length ? "pointer" : "default",
+                }}
               />
+
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", color: "#4a5568", marginTop: 4 }}>
                 <span>{formatDuration(currentSecs)}</span>
                 <span>{track.duration ? formatDuration(track.duration) : "0:00"}</span>
               </div>
             </div>
 
-            {/* Controls */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 20 }}>
-              <button
-                onClick={() => setCurrentTrack(t => (t - 1 + tracks.length) % tracks.length)}
-                style={{ background: "none", border: "none", color: "#8892b0", fontSize: "1.3rem", cursor: "pointer" }}
-              >⏮</button>
-              <button
-                onClick={() => setIsPlaying(!isPlaying)}
-                style={{
-                  width: 54, height: 54,
-                  borderRadius: "50%",
-                  background: `linear-gradient(135deg, ${activePlaylist.color}, ${activePlaylist.color}88)`,
-                  border: "none",
-                  color: "#fff",
-                  fontSize: "1.4rem",
-                  cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: isPlaying ? `0 0 25px ${activePlaylist.color}50` : "none",
-                  transition: "all 0.2s",
-                }}
-              >{isPlaying ? "⏸" : "▶"}</button>
-              <button
-                onClick={() => setCurrentTrack(t => (t + 1) % tracks.length)}
-                style={{ background: "none", border: "none", color: "#8892b0", fontSize: "1.3rem", cursor: "pointer" }}
-              >⏭</button>
+              <button onClick={handlePrev} disabled={!tracks.length} style={{
+                background: "none",
+                border: "none",
+                color: tracks.length ? "#8892b0" : "#333",
+                fontSize: "1.3rem",
+                cursor: tracks.length ? "pointer" : "default"
+              }}>
+                ⏮
+              </button>
+
+              <button onClick={handlePlayPause} disabled={!tracks.length} style={{
+                width: 54,
+                height: 54,
+                borderRadius: "50%",
+                background: tracks.length
+                  ? `linear-gradient(135deg, ${activePlaylist.color}, ${activePlaylist.color}88)`
+                  : "rgba(255,255,255,0.08)",
+                border: "none",
+                color: "#fff",
+                fontSize: "1.4rem",
+                cursor: tracks.length ? "pointer" : "default",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: isPlaying ? `0 0 25px ${activePlaylist.color}50` : "none",
+                transition: "all 0.2s",
+              }}>
+                {isPlaying ? "⏸" : "▶"}
+              </button>
+
+              <button onClick={handleNext} disabled={!tracks.length} style={{
+                background: "none",
+                border: "none",
+                color: tracks.length ? "#8892b0" : "#333",
+                fontSize: "1.3rem",
+                cursor: tracks.length ? "pointer" : "default"
+              }}>
+                ⏭
+              </button>
             </div>
 
-            {/* Volume */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ color: "#4a5568", fontSize: "0.9rem" }}>🔈</span>
               <input
                 type="range"
-                min={0} max={100}
+                min={0}
+                max={100}
                 value={volume}
                 onChange={(e) => setVolume(Number(e.target.value))}
                 style={{ flex: 1, accentColor: activePlaylist.color, cursor: "pointer" }}
@@ -232,52 +381,41 @@ export default function MusicTherapy() {
             </div>
           </div>
 
-          {/* ── Sleep Timer — LEFT COLUMN KE NEECHE ── */}
           <div className="card" style={{ padding: "16px 20px" }}>
             <div style={{ fontSize: "0.75rem", color: "#8892b0", marginBottom: 10 }}>⏰ Sleep Timer</div>
 
-            {/* Row 1: 15 30 45 60 */}
             <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
               {["15 min", "30 min", "45 min", "60 min"].map(t => (
-                <button
-                  key={t}
-                  onClick={() => handleSleepTimer(t)}
-                  style={{
-                    flex: 1,
-                    fontSize: "0.75rem",
-                    padding: "7px 0",
-                    cursor: "pointer",
-                    background: timerId === t ? `${activePlaylist.color}30` : "transparent",
-                    border: timerId === t ? `1px solid ${activePlaylist.color}` : "1px solid #333",
-                    color: timerId === t ? activePlaylist.color : "#8892b0",
-                    borderRadius: "6px",
-                    transition: "all 0.2s",
-                  }}
-                >
+                <button key={t} onClick={() => handleSleepTimer(t)} style={{
+                  flex: 1,
+                  fontSize: "0.75rem",
+                  padding: "7px 0",
+                  cursor: "pointer",
+                  background: timerId === t ? `${activePlaylist.color}30` : "transparent",
+                  border: timerId === t ? `1px solid ${activePlaylist.color}` : "1px solid #333",
+                  color: timerId === t ? activePlaylist.color : "#8892b0",
+                  borderRadius: "6px",
+                  transition: "all 0.2s",
+                }}>
                   {t}
                 </button>
               ))}
             </div>
 
-            {/* Row 2: Off button full width */}
-            <button
-              onClick={() => handleSleepTimer("Off")}
-              style={{
-                width: "100%",
-                fontSize: "0.75rem",
-                padding: "7px 0",
-                cursor: "pointer",
-                background: timerId === null ? "rgba(255,255,255,0.06)" : "transparent",
-                border: timerId === null ? "1px solid #555" : "1px solid #333",
-                color: "#8892b0",
-                borderRadius: "6px",
-                transition: "all 0.2s",
-              }}
-            >
+            <button onClick={() => handleSleepTimer("Off")} style={{
+              width: "100%",
+              fontSize: "0.75rem",
+              padding: "7px 0",
+              cursor: "pointer",
+              background: timerId === null ? "rgba(255,255,255,0.06)" : "transparent",
+              border: timerId === null ? "1px solid #555" : "1px solid #333",
+              color: "#8892b0",
+              borderRadius: "6px",
+              transition: "all 0.2s",
+            }}>
               Off
             </button>
 
-            {/* Active timer indicator */}
             {timerId && (
               <div style={{ marginTop: 10, fontSize: "0.72rem", color: activePlaylist.color, textAlign: "center" }}>
                 ✓ Timer active: {timerId}
@@ -286,35 +424,31 @@ export default function MusicTherapy() {
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN: Playlists + Track List + AI Rec ── */}
+        {/* RIGHT COLUMN */}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-          {/* Playlist Switcher */}
           <div>
             <div className="section-label">Playlists</div>
             <div className="grid-2" style={{ gap: 12 }}>
               {playlists.map((pl) => (
-                <button
-                  key={pl.id}
-                  onClick={() => { setActivePlaylist(pl); setCurrentTrack(0); setIsPlaying(false); setProgress(0); }}
-                  style={{
-                    background: activePlaylist.id === pl.id
-                      ? `linear-gradient(135deg, ${pl.color}22, ${pl.color}08)`
-                      : "rgba(255,255,255,0.02)",
-                    border: activePlaylist.id === pl.id ? `1.5px solid ${pl.color}50` : "1px solid rgba(255,255,255,0.07)",
-                    borderRadius: 14,
-                    padding: "16px",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    transition: "all 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                  }}
-                >
+                <button key={pl.id} onClick={() => handlePlaylistChange(pl)} style={{
+                  background: activePlaylist.id === pl.id
+                    ? `linear-gradient(135deg, ${pl.color}22, ${pl.color}08)`
+                    : "rgba(255,255,255,0.02)",
+                  border: activePlaylist.id === pl.id ? `1.5px solid ${pl.color}50` : "1px solid rgba(255,255,255,0.07)",
+                  borderRadius: 14,
+                  padding: "16px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 0.2s",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                }}>
                   <span style={{ fontSize: "1.5rem" }}>{pl.icon}</span>
                   <div>
-                    <div style={{ fontSize: "0.9rem", fontWeight: 600, color: activePlaylist.id === pl.id ? pl.color : "#e8eaf6" }}>{pl.title}</div>
+                    <div style={{ fontSize: "0.9rem", fontWeight: 600, color: activePlaylist.id === pl.id ? pl.color : "#e8eaf6" }}>
+                      {pl.title}
+                    </div>
                     <div style={{ fontSize: "0.72rem", color: "#4a5568" }}>{pl.desc}</div>
                   </div>
                 </button>
@@ -322,15 +456,37 @@ export default function MusicTherapy() {
             </div>
           </div>
 
-          {/* Track List */}
           <div className="card">
             <div className="section-label">Tracks — {activePlaylist.title}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {tracks.map((t, i) => (
-                <div
-                  key={i}
-                  onClick={() => { setCurrentTrack(i); setIsPlaying(true); setProgress(0); }}
-                  style={{
+
+            {loadingTracks && (
+              <div style={{ padding: "24px 12px", color: "#8892b0", textAlign: "center" }}>
+                🎵 Loading tracks...
+              </div>
+            )}
+
+            {!loadingTracks && trackError && (
+              <div style={{
+                padding: 18,
+                color: "#ff6b6b",
+                background: "rgba(255,107,107,0.08)",
+                border: "1px solid rgba(255,107,107,0.2)",
+                borderRadius: 12,
+                textAlign: "center",
+                fontSize: "0.85rem"
+              }}>
+                {trackError}
+              </div>
+            )}
+
+            {!loadingTracks && !trackError && tracks.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {tracks.map((t, i) => (
+                  <div key={t.id || i} onClick={() => {
+                    setCurrentTrack(i);
+                    setIsPlaying(true);
+                    setProgress(0);
+                  }} style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 14,
@@ -340,61 +496,76 @@ export default function MusicTherapy() {
                     background: i === currentTrack ? `${activePlaylist.color}10` : "rgba(255,255,255,0.02)",
                     border: i === currentTrack ? `1px solid ${activePlaylist.color}30` : "1px solid transparent",
                     transition: "all 0.2s",
-                  }}
-                >
-                  {/* Track Thumbnail */}
-                  <div style={{
-                    width: 36, height: 36,
-                    borderRadius: 8,
-                    overflow: "hidden",
-                    background: `${activePlaylist.color}18`,
-                    border: `1px solid ${activePlaylist.color}30`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    flexShrink: 0,
                   }}>
-                    {i === currentTrack && isPlaying ? (
-                      <span style={{ fontSize: "1rem", color: activePlaylist.color }}>▶</span>
-                    ) : (
-                      <img
-                        src={t.image}
-                        alt=""
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        onError={(e) => { e.target.style.display = "none"; }}
-                      />
-                    )}
-                  </div>
-
-                  {/* Name + Artist */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
-                      fontSize: "0.88rem",
-                      fontWeight: i === currentTrack ? 600 : 400,
-                      color: i === currentTrack ? activePlaylist.color : "#e8eaf6",
-                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                      width: 36,
+                      height: 36,
+                      borderRadius: 8,
+                      overflow: "hidden",
+                      background: `${activePlaylist.color}18`,
+                      border: `1px solid ${activePlaylist.color}30`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
                     }}>
-                      {t.name}
+                      {i === currentTrack && isPlaying ? (
+                        <span style={{ fontSize: "1rem", color: activePlaylist.color }}>▶</span>
+                      ) : t.image ? (
+                        <img src={t.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : (
+                        <span>{activePlaylist.icon}</span>
+                      )}
                     </div>
-                    <div style={{ fontSize: "0.72rem", color: "#4a5568" }}>{t.artist_name}</div>
-                  </div>
 
-                  {/* Duration */}
-                  <div style={{ fontSize: "0.78rem", color: "#4a5568", flexShrink: 0 }}>
-                    {formatDuration(t.duration)}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: "0.88rem",
+                        fontWeight: i === currentTrack ? 600 : 400,
+                        color: i === currentTrack ? activePlaylist.color : "#e8eaf6",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}>
+                        {t.name}
+                      </div>
+                      <div style={{ fontSize: "0.72rem", color: "#4a5568" }}>{t.artist_name}</div>
+                    </div>
+
+                    <div style={{ fontSize: "0.78rem", color: "#4a5568", flexShrink: 0 }}>
+                      {formatDuration(t.duration)}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* AI Recommendation */}
-          <div className="card" style={{ background: "linear-gradient(135deg, rgba(0,212,170,0.08), rgba(124,92,252,0.08))", border: "1px solid rgba(0,212,170,0.15)" }}>
+          <div className="card" style={{
+            background: "linear-gradient(135deg, rgba(0,212,170,0.08), rgba(124,92,252,0.08))",
+            border: "1px solid rgba(0,212,170,0.15)"
+          }}>
             <div className="section-label">AI Recommendation</div>
             <p style={{ fontSize: "0.88rem", color: "#8892b0", lineHeight: 1.6 }}>
-              Based on your evening mood check-in, <span style={{ color: "#00d4aa" }}>Deep Calm</span> is recommended. Ocean sounds activate the parasympathetic nervous system, reducing cortisol within 15 minutes of listening.
+              Based on your evening mood check-in, <span style={{ color: "#00d4aa" }}>Deep Calm</span> is recommended.
+              Slow relaxing sounds may help your body shift into a calmer state.
             </p>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 900px) {
+          .page-container > div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
