@@ -1,56 +1,83 @@
-# AI Companion - Mental Health Support Platform
+<div align="center">
 
-AI Companion is an AI-powered mental wellness platform designed to provide supportive emotional conversations, mood tracking, meditation, music therapy, self-help content, mind games, and yoga posture detection in one place.
+# ✦ MindAura
 
-This project focuses on making mental wellness support more accessible through an interactive AI companion, a clean user interface, and useful wellness modules.
+### Your private, interactive AI wellness companion
 
-## Live Demo
+<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.demolab.com?font=DM+Sans&weight=600&size=22&pause=1000&color=5EEAD4&center=true&vCenter=true&width=680&lines=Talk.+Breathe.+Reflect.+Grow.;30+cognitive+games+for+a+sharper+mind.;A+calmer+space%2C+one+small+step+at+a+time." alt="MindAura animated introduction" /></a>
 
-Frontend: https://ai-companion-coral-chi.vercel.app
+[![Live App](https://img.shields.io/badge/Live_App-Open_MindAura-5eead4?style=for-the-badge&logo=vercel&logoColor=06101a)](https://ai-companion-coral-chi.vercel.app)
+[![React](https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Vite](https://img.shields.io/badge/Vite-8-646cff?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
 
-## Repository
+**[Experience the live app](https://ai-companion-coral-chi.vercel.app)** · **[Explore features](#-the-mindaura-experience)** · **[Run locally](#-run-locally)**
 
-GitHub: https://github.com/khushisoni2004/AI-COMPANION
+</div>
 
-## Important Disclaimer
+---
 
-This platform is created for educational and wellness-support purposes only. It is not a replacement for professional medical advice, diagnosis, therapy, or emergency care.
+## 🌌 What is MindAura?
 
-## Key Features
+MindAura brings supportive conversation, mood awareness, mindful breathing,
+movement, therapeutic sound, personal-growth reading, and cognitive play into
+one focused experience. Aurora responds to common emotional needs with distinct,
+practical guidance while keeping clear boundaries around crisis support,
+diagnosis, and abusive language.
 
-- AI companion chatbot for supportive conversations
-- Mood tracking and emotional activity logging
-- Meditation and breathing support
-- Music therapy for relaxation and focus
-- Yoga and exercise posture detection using MediaPipe
-- Self-help reading and mental growth section
-- 30 interactive mind games for focus, memory, language, logic, and relaxation
-- Secure backend APIs
-- Private session-scoped wellness analytics
-- Lightweight SQLite storage with no external database required
-- Crisis-safe response handling
-- Abuse moderation that rejects and does not store abusive messages
+> [!IMPORTANT]
+> MindAura is an educational wellness-support project. It is not a replacement
+> for professional medical advice, diagnosis, therapy, or emergency care.
 
-## Tech Stack
+## ✨ The MindAura experience
 
-### Frontend
+| Space | What you can do |
+|---|---|
+| **Aurora Companion** | Have natural, intent-aware conversations with voice input and spoken replies |
+| **Mood Dashboard** | Log daily mood, follow streaks, and review private session activity |
+| **Meditation Studio** | Use guided breathing, calm timers, and mindful sessions |
+| **Move & Yoga** | Follow structured exercises and camera-assisted posture experiences |
+| **Sound Therapy** | Explore relaxing playlists, playback controls, and sleep timers |
+| **Growth Library** | Read curated personal-growth material and save favourites |
+| **Mind Games** | Play 30 exercises across memory, focus, language, speed, math, and logic |
 
-- React.js
-- Vite
-- Tailwind CSS
-- Three.js
-- MediaPipe
+### 🧠 A 30-game cognitive studio
 
-### Backend
+The game library includes Memory Match, 2048, Wordle, Sudoku, Simon Says,
+Typing Speed, Trivia, Pattern Recall, Mental Math, Word Hunt, Grid Navigator,
+Logic Gates, Reflex Trainer, 2-Back Focus, Mindful Recall, Odd One Out, and more.
 
-- Python
-- FastAPI
-- Pydantic
-- Uvicorn
+### 🛡️ Safety by design
 
-## Run Locally
+- Crisis language receives immediate, region-relevant support guidance.
+- English and Hindi/Hinglish abusive language—including common evasive spellings—is rejected.
+- Rejected abusive content is not stored in conversation history.
+- Wellness analytics are isolated by session rather than shared across users.
+- Aurora does not diagnose conditions or present itself as a therapist.
 
-Start the backend:
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    A[React + Vite] --> B[FastAPI]
+    B --> C[(SQLite)]
+    A --> D[Three.js Avatar]
+    A --> E[MediaPipe Vision]
+    B --> F[Safety + Intent Engine]
+    F --> B
+```
+
+| Layer | Technology |
+|---|---|
+| Interface | React 18, Vite, CSS, Lucide React |
+| Interactive media | Three.js, MediaPipe Tasks Vision, Web Speech APIs |
+| API | Python, FastAPI, Pydantic, Uvicorn |
+| Storage | SQLite |
+| Production | Vercel frontend with configurable backend URL |
+
+## 🚀 Run locally
+
+### 1. Start the API
 
 ```bash
 cd mental-health-backend
@@ -60,7 +87,10 @@ pip install -r requirements.txt
 uvicorn app:app --reload
 ```
 
-Start the frontend in a second terminal:
+The API is available at `http://127.0.0.1:8000`; interactive documentation is
+available at `http://127.0.0.1:8000/docs`.
+
+### 2. Start the interface
 
 ```bash
 cd FRONTEND
@@ -68,28 +98,49 @@ npm install
 npm run dev
 ```
 
-For production, set `VITE_API_URL` to the public backend URL and set a strong
-`AURORA_SECRET_KEY` on the backend. Configure `CORS_ORIGINS` with the frontend
-origin.
+Open the local address printed by Vite.
 
-## Project Structure
+## ⚙️ Production configuration
+
+| Variable | Purpose |
+|---|---|
+| `VITE_API_URL` | Public URL of the deployed FastAPI service |
+| `AURORA_SECRET_KEY` | Strong private signing secret for authentication tokens |
+| `AURORA_DB_PATH` | Optional SQLite database location |
+| `CORS_ORIGINS` | Comma-separated trusted frontend origins |
+
+Never commit production secrets or local `.env` files.
+
+## 📁 Project map
 
 ```text
 AI-COMPANION/
 ├── FRONTEND/
-│   ├── src/
 │   ├── public/
-│   ├── package.json
-│   └── vite.config.js
-│
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+│   └── package.json
 ├── mental-health-backend/
+│   ├── app.py
 │   ├── main.py
-│   ├── requirements.txt
-│   └── .env.example
-│
-├── screenshots/
-│   └── .gitkeep
-│
-├── README.md
-├── .gitignore
-└── LICENSE
+│   └── requirements.txt
+└── README.md
+```
+
+## 🤝 Contributing
+
+Thoughtful improvements are welcome. Please open an issue for substantial
+changes and keep accessibility, privacy, emotional safety, and mobile usability
+at the centre of every contribution.
+
+---
+
+<div align="center">
+
+Built with care by [Khushi Soni](https://github.com/khushisoni2004)
+
+**Pause. Breathe. Begin again.**
+
+</div>

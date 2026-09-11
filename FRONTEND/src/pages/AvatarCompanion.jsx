@@ -332,7 +332,7 @@ export default function AvatarCompanion() {
 
   const sendMessage = useCallback(async (text) => {
     const msg = (text || input).trim();
-    if (!msg) return;
+    if (!msg || isTyping) return;
     const clientMessageId = `${Date.now()}-${Math.random()}`;
 
     setInput("");
@@ -403,7 +403,7 @@ export default function AvatarCompanion() {
         },
       ]);
     }
-  }, [input]);
+  }, [input, isTyping]);
 
   return (
     <div className="page-container">
@@ -651,6 +651,7 @@ export default function AvatarCompanion() {
                 <button
                   key={i}
                   onClick={() => sendMessage(s)}
+                  disabled={isTyping}
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
@@ -659,6 +660,7 @@ export default function AvatarCompanion() {
                     borderRadius: 20,
                     fontSize: "0.72rem",
                     cursor: "pointer",
+                    opacity: isTyping ? 0.55 : 1,
                     transition: "all 0.2s",
                     whiteSpace: "nowrap",
                   }}
@@ -687,6 +689,7 @@ export default function AvatarCompanion() {
           >
             <input
               value={input}
+              disabled={isTyping}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               placeholder="Type how you're feeling..."
@@ -725,7 +728,8 @@ export default function AvatarCompanion() {
             <button
               className="btn-primary"
               onClick={() => sendMessage()}
-              style={{ padding: "10px 18px", borderRadius: 12, fontSize: "1rem" }}
+              disabled={isTyping || !input.trim()}
+              style={{ padding: "10px 18px", borderRadius: 12, fontSize: "1rem", opacity: isTyping || !input.trim() ? .55 : 1 }}
             >
               →
             </button>

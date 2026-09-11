@@ -209,8 +209,9 @@ def save_event(req: ActivityRequest) -> None:
 
 CRISIS_TERMS = ("suicide", "suicidal", "kill myself", "end my life", "self harm", "self-harm", "hurt myself", "want to die")
 ABUSE_TERMS = {
-    "asshole", "bastard", "bhenchod", "bhosdike", "bitch", "chutiya",
-    "fuck", "fucker", "gaand", "gandu", "harami", "madarchod", "randi",
+    "asshole", "bastard", "behenchod", "bhenchod", "bhosdike", "bitch",
+    "chutiya", "fuck", "fucker", "gaand", "gandu", "gelchode", "harami",
+    "madarchod", "randi",
 }
 ABUSE_MESSAGE = "Abusive language is not allowed here. Please express what you're feeling without insults, and I'll be glad to listen."
 NORMALIZATION_MAP = str.maketrans({"@": "a", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "0": "o", "$": "s"})
@@ -227,21 +228,83 @@ def is_abusive_message(message: str) -> bool:
     words = normalized_words(message)
     compact = re.sub(r"[^a-z]", "", message.casefold().translate(NORMALIZATION_MAP))
     repeated_patterns = ("".join(f"{re.escape(char)}+" for char in term) for term in ABUSE_TERMS)
-    return bool(words & ABUSE_TERMS) or any(re.search(pattern, compact) for pattern in repeated_patterns)
+    abusive_suffix = any(re.fullmatch(r"[a-z]{2,}(?:chod|chode)", word) for word in words)
+    return bool(words & ABUSE_TERMS) or abusive_suffix or any(re.search(pattern, compact) for pattern in repeated_patterns)
+
+
+RESPONSE_POOLS = {
+    "overwhelmed": (
+        "It sounds like too many things are demanding your attention at once. Let's shrink the moment: name the one thing that truly needs you in the next ten minutes. Everything else can wait.",
+        "Overwhelm often means your mind is trying to hold everything simultaneously. Put both feet on the floor, take one slow breath, and tell me the most urgent thought on your mind.",
+    ),
+    "motivation": (
+        "You do not need to feel fully motivated before you begin. Choose one task, make it tiny—just two minutes—and let starting create the momentum. What would your two-minute step be?",
+        "Let's make progress feel possible: pick the smallest useful action you can finish now, then give yourself credit for showing up. What are you trying to move forward today?",
+        "A difficult day does not erase your ability. Lower the bar from ‘finish it’ to ‘begin it’: open the page, write one line, or take one step. Which goal needs a gentle push?",
+    ),
+    "calm": (
+        "Let's slow this down together. Relax your jaw, drop your shoulders, inhale through your nose for four counts, then exhale for six. Repeat that three times and tell me what you notice.",
+        "For the next thirty seconds, you do not need to solve anything. Notice five things you can see, four you can feel, and three you can hear. I’ll stay with you while the intensity settles.",
+    ),
+    "anxiety": (
+        "We can take anxiety one step at a time. First, place both feet on the ground. Breathe in for four and out for six. Now ask: is there a danger happening right now, or is my mind predicting one?",
+        "Anxiety can make every thought feel urgent. Let's separate facts from fears: what do you know is happening, and what are you worried might happen?",
+        "I’m with you. Try naming the feeling—‘this is anxiety, not certainty’—then take one longer exhale. What thought keeps returning most strongly?",
+    ),
+    "share": (
+        "Of course. Take your time—you can start anywhere, and you do not have to explain it perfectly. What would you like me to understand?",
+        "I’m listening, without judgment. Share as much or as little as feels comfortable. What happened?",
+    ),
+    "sad": (
+        "I'm sorry this feels so heavy. You deserve gentleness right now. Would it help more to talk about what happened, or to focus on getting through the next hour?",
+        "Thank you for saying it out loud. You do not have to carry the whole feeling alone—what part of today has hurt the most?",
+    ),
+    "angry": (
+        "That anger is telling you something mattered. Before acting on it, take one slow breath and give yourself a little space. What boundary, need, or hurt is underneath it?",
+    ),
+    "lonely": (
+        "Loneliness can feel painfully quiet. I’m here with you in this moment. Is there someone safe you could message—even just to say hello—or would you rather talk with me about what feels missing?",
+    ),
+    "sleep": (
+        "Let's help your mind shift toward rest. Dim the screen, unclench your body from forehead to toes, and make each exhale longer than the inhale. What is keeping your mind awake tonight?",
+    ),
+    "thanks": ("You’re very welcome. I’m glad you reached out—would you like to keep talking or take a quiet moment for yourself?",),
+    "greeting": ("Hi—I'm glad you're here. How are you feeling right now: calm, low, anxious, overwhelmed, or something else?",),
+    "default": (
+        "I’m listening. Tell me what happened and what you need most right now—support, a practical next step, or simply space to be heard.",
+        "You can say it in your own words. What feels most important for me to understand right now?",
+    ),
+}
+
+
+def detect_intent(text: str) -> str:
+    if text in {"hi", "hello", "hey", "hi aurora", "hello aurora"}:
+        return "greeting"
+    checks = (
+        ("overwhelmed", ("overwhelmed", "too much", "can't handle", "cannot handle", "burned out", "burnt out")),
+        ("motivation", ("motivat", "procrastinat", "no energy", "give up", "encourage", "inspire")),
+        ("calm", ("calm down", "help me calm", "ground me", "breathing exercise", "panic", "panicking")),
+        ("anxiety", ("anxious", "anxiety", "worried", "worry", "nervous", "stressed", "stress")),
+        ("share", ("share something", "need to talk", "can we talk", "listen to me", "tell you something")),
+        ("sad", ("sad", "depressed", "down", "hopeless", "crying", "empty")),
+        ("angry", ("angry", "furious", "frustrated", "irritated")),
+        ("lonely", ("lonely", "alone", "nobody cares", "isolated")),
+        ("sleep", ("can't sleep", "cannot sleep", "insomnia", "fall asleep", "awake at night")),
+        ("thanks", ("thank you", "thanks", "helpful")),
+        ("greeting", ("hello", "hi ", "hey", "good morning", "good evening")),
+    )
+    return next((intent for intent, phrases in checks if any(phrase in text for phrase in phrases)), "default")
 
 
 def reply_to(message: str) -> tuple[str, bool, bool]:
-    text = message.lower()
+    text = message.casefold().strip()
     crisis = any(term in text for term in CRISIS_TERMS)
     if crisis:
         return ("I'm really glad you reached out. Please contact local emergency services now if you are in immediate danger. In India, you can also call Tele-MANAS at 14416. Please stay with someone you trust while you get support.", True, is_abusive_message(message))
     if is_abusive_message(message):
         return (ABUSE_MESSAGE, False, True)
-    if any(word in text for word in ("anxious", "anxiety", "worried", "stressed")):
-        return ("That sounds heavy. Try one slow breath: inhale for four counts and exhale for six. What is the biggest source of pressure right now?", False, False)
-    if any(word in text for word in ("sad", "depressed", "down", "hopeless")):
-        return ("I'm sorry you're carrying this. You don't have to solve everything at once—what happened today that feels hardest?", False, False)
-    return ("I'm here with you. Tell me a little more about what you're feeling or what you need right now.", False, False)
+    intent = detect_intent(text)
+    return (secrets.choice(RESPONSE_POOLS[intent]), False, False)
 
 
 @app.get("/")
