@@ -6,7 +6,7 @@ This project focuses on making mental wellness support more accessible through a
 
 ## Live Demo
 
-Frontend: https://ai-companion-three-gray.vercel.app
+Frontend: https://ai-companion-coral-chi.vercel.app
 
 ## Repository
 
