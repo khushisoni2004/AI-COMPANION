@@ -5,7 +5,7 @@
 
 
 import { useState, useEffect, useRef } from "react";
-const API_BASE_URL = "/api";
+import { API_BASE_URL } from "../services/api";
 
 // ── Particle background (matches your app aesthetic) ─────────────────────────
 function ParticleBackground() {

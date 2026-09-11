@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
-const API_BASE_URL = "/api";
+import { API_BASE_URL } from "../services/api";
 
 const moodEmojis = ["😞", "😔", "😐", "🙂", "😊"];
 const moodLabels = ["Very Low", "Low", "Neutral", "Good", "Excellent"];
@@ -99,7 +98,7 @@ export default function Dashboard({ setActivePage }) {
 
   const fetchDashboard = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/dashboard`);
+      const res = await fetch(`${API_BASE_URL}/dashboard?session_id=${encodeURIComponent(sessionIdRef.current)}`);
       if (!res.ok) throw new Error(`Dashboard error: ${res.status}`);
       const data = await res.json();
       setDashboardData(normalizeDashboardData(data));
@@ -222,7 +221,7 @@ export default function Dashboard({ setActivePage }) {
 
   return (
     <div className="page-container" style={{ paddingTop: 32 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 36 }}>
+      <div className="dashboard-hero-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 36 }}>
         <div>
           <div className="section-label">Welcome back</div>
           <h1 className="page-title">{greeting()} ✨</h1>
@@ -297,7 +296,7 @@ export default function Dashboard({ setActivePage }) {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, marginBottom: 28 }}>
+      <div className="dashboard-insights-grid" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, marginBottom: 28 }}>
         <div className="card">
           <div className="section-label">Daily Check-in</div>
           <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 20, color: "#e8eaf6" }}>

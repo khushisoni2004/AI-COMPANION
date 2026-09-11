@@ -2247,18 +2247,6 @@ function ReflexTrainer() {
   const [started, setStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
 
-  const spawnTarget = () => {
-    if (!started || gameOver) return;
-    const idx = Math.floor(Math.random() * 9);
-    setActive(idx);
-    
-    const timeout = setTimeout(() => {
-      setActive(null);
-      setMisses(m => m + 1);
-      setTimeout(spawnTarget, 300);
-    }, 1000);
-  };
-
   useEffect(() => {
     if (started && !gameOver) {
       const interval = setInterval(() => {
@@ -2271,20 +2259,32 @@ function ReflexTrainer() {
     }
   }, [started, gameOver]);
 
+  useEffect(() => {
+    if (!started || gameOver) return undefined;
+    if (active === null) {
+      const spawn = setTimeout(() => setActive(Math.floor(Math.random() * 9)), 300);
+      return () => clearTimeout(spawn);
+    }
+    const miss = setTimeout(() => {
+      setActive(null);
+      setMisses(value => value + 1);
+    }, 1000);
+    return () => clearTimeout(miss);
+  }, [started, gameOver, active]);
+
   const start = () => {
     setScore(0);
     setMisses(0);
     setTimer(30);
     setStarted(true);
     setGameOver(false);
-    setTimeout(spawnTarget, 500);
+    setActive(null);
   };
 
   const handleClick = (idx) => {
     if (idx === active) {
       setScore(s => s + 1);
       setActive(null);
-      setTimeout(spawnTarget, 300);
     }
   };
 
@@ -2333,6 +2333,65 @@ function ReflexTrainer() {
   );
 }
 
+// ─── 28. N-BACK FOCUS ────────────────────────────────────────────────────────
+const FOCUS_SYMBOLS = ["🌿", "🌊", "☀️", "🌙", "✨", "🪷"];
+function NBackFocus() {
+  const makeRound = () => {
+    const sequence = [];
+    for (let i = 0; i < 16; i += 1) {
+      sequence.push(i > 1 && Math.random() < 0.35 ? sequence[i - 2] : FOCUS_SYMBOLS[Math.floor(Math.random() * FOCUS_SYMBOLS.length)]);
+    }
+    return sequence;
+  };
+  const [round, setRound] = useState(makeRound);
+  const [index, setIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [answered, setAnswered] = useState(false);
+  const isMatch = index > 1 && round[index] === round[index - 2];
+  const answer = (choice) => {
+    if (answered || index < 2) return;
+    if (choice === isMatch) setScore(value => value + 1);
+    setAnswered(true);
+    setTimeout(() => { setIndex(value => Math.min(round.length, value + 1)); setAnswered(false); }, 450);
+  };
+  const reset = () => { setRound(makeRound()); setIndex(0); setScore(0); setAnswered(false); };
+  if (index >= round.length) return <div style={{ textAlign:"center",padding:28 }}><div style={{fontSize:"3rem"}}>🧠</div><h3 style={{margin:"10px 0"}}>Focus score: {score}/{round.length - 2}</h3><button className="btn-primary" onClick={reset}>Play again</button></div>;
+  return <div style={{textAlign:"center"}}>
+    <div style={{display:"flex",justifyContent:"space-between",color:"#8892b0",fontSize:12,marginBottom:18}}><span>Round {index + 1}/{round.length}</span><span>Score {score}</span></div>
+    <p style={{color:"#8892b0",fontSize:13}}>Does this symbol match the one shown two turns ago?</p>
+    <div style={{fontSize:"5rem",padding:"28px 0"}}>{round[index]}</div>
+    {index < 2 ? <button className="btn-primary" onClick={() => setIndex(value => value + 1)}>Remember →</button> : <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><button className="btn-primary" onClick={() => answer(true)}>Match</button><button className="btn-ghost" onClick={() => answer(false)}>Different</button></div>}
+  </div>;
+}
+
+// ─── 29. MINDFUL WORD RECALL ────────────────────────────────────────────────
+const WORD_BANK = ["calm", "river", "kind", "bloom", "light", "breathe", "forest", "gentle", "hope", "quiet", "cloud", "balance", "warm", "present", "smile", "rest"];
+function WordRecall() {
+  const makeGame = () => [...WORD_BANK].sort(() => Math.random() - .5);
+  const [words, setWords] = useState(makeGame);
+  const [phase, setPhase] = useState("study");
+  const [chosen, setChosen] = useState([]);
+  const targets = words.slice(0, 6);
+  const choices = [...words.slice(8, 11), ...words.slice(0, 6), ...words.slice(11, 14)];
+  const reset = () => { setWords(makeGame()); setChosen([]); setPhase("study"); };
+  if (phase === "result") return <div style={{textAlign:"center",padding:26}}><div style={{fontSize:"3rem"}}>🌱</div><h3 style={{margin:"10px 0"}}>You recalled {chosen.filter(word => targets.includes(word)).length}/6</h3><button className="btn-primary" onClick={reset}>New words</button></div>;
+  return <div style={{textAlign:"center"}}><p style={{color:"#8892b0",marginBottom:20}}>{phase === "study" ? "Take a calm moment to remember these six words." : "Select only the words you remember."}</p>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>{(phase === "study" ? targets : choices).map(word => <button key={word} disabled={phase === "study"} onClick={() => setChosen(items => items.includes(word) ? items.filter(item => item !== word) : [...items,word])} style={{padding:"14px 8px",borderRadius:12,border:`1px solid ${chosen.includes(word) ? "#34d399" : "rgba(255,255,255,.1)"}`,background:chosen.includes(word)?"rgba(52,211,153,.12)":"rgba(255,255,255,.035)",color:"#e8eaf6",cursor:phase === "study"?"default":"pointer"}}>{word}</button>)}</div>
+    <button className="btn-primary" onClick={() => setPhase(phase === "study" ? "recall" : "result")}>{phase === "study" ? "I'm ready" : "Check recall"}</button>
+  </div>;
+}
+
+// ─── 30. ODD ONE OUT ────────────────────────────────────────────────────────
+const ODD_SETS = [["🍃","🌿"],["🌊","💧"],["🌙","⭐"],["🟣","🔵"],["😊","🙂"]];
+function OddOneOut() {
+  const create = () => { const [common, odd] = ODD_SETS[Math.floor(Math.random()*ODD_SETS.length)]; const oddAt=Math.floor(Math.random()*20); return {cells:Array.from({length:20},(_,i)=>i===oddAt?odd:common),oddAt}; };
+  const [board,setBoard]=useState(create); const [score,setScore]=useState(0); const [round,setRound]=useState(1); const [feedback,setFeedback]=useState("");
+  const choose = i => { const correct=i===board.oddAt; setFeedback(correct?"Sharp focus!":"Look a little closer"); if(correct)setScore(value=>value+1); setTimeout(()=>{ if(round<10){setRound(value=>value+1);setBoard(create());setFeedback("");} },500); };
+  const reset=()=>{setBoard(create());setScore(0);setRound(1);setFeedback("");};
+  if(round===10&&feedback) return <div style={{textAlign:"center",padding:28}}><div style={{fontSize:"3rem"}}>👁️</div><h3 style={{margin:"10px 0"}}>Visual score: {score}/10</h3><button className="btn-primary" onClick={reset}>Play again</button></div>;
+  return <div><div style={{display:"flex",justifyContent:"space-between",color:"#8892b0",fontSize:12,marginBottom:16}}><span>Round {round}/10</span><span>Score {score}</span></div><p style={{textAlign:"center",color:feedback==="Sharp focus!"?"#34d399":"#8892b0",height:22}}>{feedback||"Find the symbol that is different"}</p><div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>{board.cells.map((cell,i)=><button key={i} onClick={()=>choose(i)} style={{aspectRatio:"1",fontSize:"1.8rem",borderRadius:12,border:"1px solid rgba(255,255,255,.08)",background:"rgba(255,255,255,.03)",cursor:"pointer"}}>{cell}</button>)}</div></div>;
+}
+
 // ─── UPDATE GAME REGISTRY ────────────────────────────────────────────────────
 const gameList = [
   // ... (keep all your existing games 1-12)
@@ -2365,6 +2424,9 @@ const gameList = [
   { id: "emojiMatch", title: "Emoji Match", desc: "Find the matching emoji", icon: "😊", color: "#fb8500", component: EmojiMatch, tag: "Speed" },
   { id: "logicGates", title: "Logic Gates", desc: "Solve boolean operations", icon: "🔌", color: "#8338ec", component: LogicGates, tag: "Logic" },
   { id: "reflex", title: "Reflex Trainer", desc: "Click targets quickly", icon: "🎯", color: "#ff006e", component: ReflexTrainer, tag: "Speed" },
+  { id: "nBack", title: "2-Back Focus", desc: "Strengthen working memory one symbol at a time", icon: "🧠", color: "#a78bfa", component: NBackFocus, tag: "Focus" },
+  { id: "wordRecall", title: "Mindful Recall", desc: "Remember calming words and test your recall", icon: "🌱", color: "#34d399", component: WordRecall, tag: "Memory" },
+  { id: "oddOne", title: "Odd One Out", desc: "Train visual attention across ten rounds", icon: "👁️", color: "#38bdf8", component: OddOneOut, tag: "Focus" },
 ];
 
 
@@ -2384,7 +2446,7 @@ export default function MindGames() {
       <div className="page-header">
         <div className="section-label">Wellness Module</div>
         <h1 className="page-title">Mind Games</h1>
-        <p className="page-subtitle">12 cognitive exercises to sharpen focus, memory, speed & logic</p>
+        <p className="page-subtitle">30 interactive exercises for focus, memory, language, speed and logic</p>
       </div>
 
       {!activeGame ? (
@@ -2417,7 +2479,7 @@ export default function MindGames() {
 
           <div className="card" style={{ background: "linear-gradient(135deg,rgba(124,92,252,0.08),rgba(0,212,170,0.05))", border: "1px solid rgba(124,92,252,0.15)" }}>
             <div className="section-label">Why Mind Games?</div>
-            <p style={{ fontSize: "0.88rem", color: "#8892b0", lineHeight: 1.7 }}>Cognitive exercises improve neuroplasticity — the brain's ability to form new connections. Regular puzzles and memory games can reduce anxiety, improve working memory, and increase attention span. Just 15 minutes daily can make a measurable difference.</p>
+            <p style={{ fontSize: "0.88rem", color: "#8892b0", lineHeight: 1.7 }}>Short cognitive exercises can help practise attention, working memory and flexible thinking. Treat these games as a gentle mental warm-up—not a medical assessment—and pause whenever you feel tired.</p>
           </div>
         </>
       ) : (

@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState } from "react";
 
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import AvatarCompanion from "./pages/AvatarCompanion";
-import Meditation from "./pages/Meditation";
-import Exercise from "./pages/Exercise";
-import MusicTherapy from "./pages/MusicTherapy";
-import MentalGrowth from "./pages/MentalGrowth";
-import MindGames from "./pages/MindGames";
+import Sidebar from "./components/Sidebar";
+
+const AvatarCompanion = lazy(() => import("./pages/AvatarCompanion"));
+const Meditation = lazy(() => import("./pages/Meditation"));
+const Exercise = lazy(() => import("./pages/Exercise"));
+const MusicTherapy = lazy(() => import("./pages/MusicTherapy"));
+const MentalGrowth = lazy(() => import("./pages/MentalGrowth"));
+const MindGames = lazy(() => import("./pages/MindGames"));
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -15,6 +17,7 @@ export default function App() {
   );
 
   const [activePage, setActivePage] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 760);
 
 
   const handleAuthSuccess = () => {
@@ -26,6 +29,8 @@ export default function App() {
     localStorage.removeItem("aurora_token");
     localStorage.removeItem("aurora_user");
     localStorage.removeItem("wellness_session_id");
+    localStorage.removeItem("aurora_session_id");
+    localStorage.removeItem("mindcare_session_id");
     setIsLoggedIn(false);
   };
 
@@ -61,82 +66,19 @@ export default function App() {
     }
   };
 
+  const navigate = (page) => {
+    setActivePage(page);
+    if (window.innerWidth <= 760) setSidebarOpen(false);
+  };
+
   return (
-    <div>
-      <div
-        style={{
-          position: "fixed",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: 230,
-          background: "#08101f",
-          borderRight: "1px solid rgba(255,255,255,0.08)",
-          padding: 20,
-          zIndex: 10,
-        }}
-      >
-        <h2 style={{ color: "#e8eaf6", marginBottom: 24 }}>Aurora</h2>
-
-        {[
-          ["dashboard", "Dashboard"],
-          ["avatar", "AI Companion"],
-          ["meditation", "Meditation"],
-          ["exercise", "Exercise"],
-          ["music", "Music Therapy"],
-          ["growth", "Mental Growth"],
-          ["games", "Mind Games"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setActivePage(id)}
-            style={{
-              width: "100%",
-              padding: "12px 14px",
-              marginBottom: 8,
-              borderRadius: 10,
-              border: "none",
-              textAlign: "left",
-              cursor: "pointer",
-              color: activePage === id ? "#00d4aa" : "#8892b0",
-              background:
-                activePage === id
-                  ? "rgba(0,212,170,0.12)"
-                  : "transparent",
-            }}
-          >
-            {label}
-          </button>
-        ))}
-
-
-        <button
-          onClick={handleLogout}
-          style={{
-            width: "100%",
-            padding: "12px 14px",
-            marginTop: 20,
-            borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.1)",
-            background: "transparent",
-            color: "#ff6b6b",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
-      </div>
-
-      <main
-        style={{
-          marginLeft: 230,
-          minHeight: "100vh",
-          background: "#0a0f1e",
-          color: "#e8eaf6",
-          padding: 24,
-        }}
-      >
-        {renderPage()}
+    <div className="app-shell">
+      <Sidebar activePage={activePage} onNavigate={navigate} isOpen={sidebarOpen} onToggle={() => setSidebarOpen(open => !open)} onLogout={handleLogout} />
+      <button className="mobile-menu-button" onClick={() => setSidebarOpen(true)} aria-label="Open navigation">☰ <span>MindAura</span></button>
+      <main className={`app-main ${sidebarOpen ? "sidebar-open" : "sidebar-closed"}`}>
+        <Suspense fallback={<div style={{ padding: 24, color: "#8892b0" }}>Loading…</div>}>
+          {renderPage()}
+        </Suspense>
       </main>
     </div>
   );

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import * as THREE from "three";
 import { Mic, MicOff } from "lucide-react";
 
-const API_BASE_URL = "/api";
+import { API_BASE_URL } from "../services/api";
 
 const emotions = [
   { label: "Happy", icon: "😊", color: "#ffd166" },
@@ -333,11 +333,12 @@ export default function AvatarCompanion() {
   const sendMessage = useCallback(async (text) => {
     const msg = (text || input).trim();
     if (!msg) return;
+    const clientMessageId = `${Date.now()}-${Math.random()}`;
 
     setInput("");
     setMessages((prev) => [
       ...prev,
-      { role: "user", text: msg, time: new Date() },
+      { role: "user", text: msg, time: new Date(), clientMessageId },
     ]);
     setIsTyping(true);
 
@@ -362,12 +363,15 @@ export default function AvatarCompanion() {
       const reply = data.response || "I'm here with you.";
 
       setMessages((prev) => [
-        ...prev,
+        ...(data.is_abusive
+          ? prev.filter((message) => message.clientMessageId !== clientMessageId)
+          : prev),
         {
           role: "avatar",
           text: reply,
           time: new Date(),
           isCrisis: data.is_crisis,
+          isModeration: data.is_abusive,
         },
       ]);
 

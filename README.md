@@ -24,10 +24,12 @@ This platform is created for educational and wellness-support purposes only. It 
 - Music therapy for relaxation and focus
 - Yoga and exercise posture detection using MediaPipe
 - Self-help reading and mental growth section
-- Mind games for focus and relaxation
+- 30 interactive mind games for focus, memory, language, logic, and relaxation
 - Secure backend APIs
-- MongoDB-based data storage
+- Private session-scoped wellness analytics
+- Lightweight SQLite storage with no external database required
 - Crisis-safe response handling
+- Abuse moderation that rejects and does not store abusive messages
 
 ## Tech Stack
 
@@ -43,10 +45,32 @@ This platform is created for educational and wellness-support purposes only. It 
 
 - Python
 - FastAPI
-- MongoDB
-- Motor
 - Pydantic
 - Uvicorn
+
+## Run Locally
+
+Start the backend:
+
+```bash
+cd mental-health-backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
+
+Start the frontend in a second terminal:
+
+```bash
+cd FRONTEND
+npm install
+npm run dev
+```
+
+For production, set `VITE_API_URL` to the public backend URL and set a strong
+`AURORA_SECRET_KEY` on the backend. Configure `CORS_ORIGINS` with the frontend
+origin.
 
 ## Project Structure
 

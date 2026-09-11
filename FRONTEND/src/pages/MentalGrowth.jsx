@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 
-const API_BASE_URL = "/api";
+import { API_BASE_URL } from "../services/api";
 
 const BOOKS_DB = [
   { id: 1, title: "Bhagavad Gita As It Is", author: "A.C. Bhaktivedanta Swami", category: "Spiritual", icon: "🕉️", color: "#7C3AED", description: "The eternal dialogue between Arjuna and Krishna on duty, devotion, and the nature of the Self.", featured: true, image: "https://images.unsplash.com/photo-1508672019048-805c876b67e2?w=1200&q=80" },
